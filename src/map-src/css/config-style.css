@@ -1,0 +1,602 @@
+/* 設定画面全体のスタイル */
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0px;
+}
+
+/* ヘッダー */
+div#map-title {
+  font-weight: bold;
+  font-size: xx-large;
+  border-bottom-style: inset;
+  padding: 2px 0px 1px 10px;
+  height: 44px;
+}
+
+/* 設定画面 */
+.container {
+  width: 100%;
+  display: flex;
+  position: fixed;
+  height: calc(100% - 44px);
+}
+
+.main-contents {
+  width: 85%;
+  padding: 10px;
+  height: 100%;
+  /* min-width: 680px; */
+}
+
+.left-menu {
+  /* width: 15%;
+  min-width: 140px;
+  padding: 10px;
+  background-color: #bcffff; */
+  height: 100%;
+}
+
+.menu-buttons {
+  width: 15%;
+  min-width: 140px;
+  padding: 10px;
+  background-color: #bcffff;
+  height: calc(100% - 29px);
+}
+
+img#home_menu_button {
+  width: 31px;
+  height: 19px;
+  margin-left: 5px;
+  margin-top: 8px;
+}
+
+#configs {
+  height: 100%;
+  /* overflow-y: auto; */
+}
+
+.show-mapconfigs {
+  height: calc(100% - 100px);
+  overflow-y: auto;
+  position: fixed;
+  width: calc(100% - 190px);
+}
+
+div#first_config,
+#first_popup {
+  display: none;
+  /**見えなくする*/
+}
+
+/* menuのボタン */
+#home_menu_button_area {
+  display: none;
+}
+
+button#show_home_menu,
+button#show_map_menu {
+  width: 100%;
+  height: 40px;
+  background-color: #efe4e4;
+  border: none;
+  box-shadow: inset 0px 0px 20px #dbd8d8;
+}
+
+div#back_map {
+  margin-top: 15px;
+}
+
+button#show_home_menu:active button#show_map_menu:active {
+  background-color: rgb(241, 241, 241);
+}
+
+div#home_menu,
+div#map_menu {
+  margin-bottom: 7px;
+}
+
+/* ユーザーの表示*/
+table#user_teble {
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin-bottom: 16px;
+}
+
+div#config_home_manu {
+  height: calc(100% - 24px);
+  overflow: auto;
+}
+
+table#user_teble th {
+  background: aliceblue;
+  border: 1px solid #c9c9c9;
+}
+
+th#hide_header,
+td.delete-user {
+  background: none !important;
+  border: none !important;
+}
+
+table#user_teble td {
+  border: 1px solid #c9c9c9;
+}
+
+table#user_teble td span {
+  padding: 0px 10px 0px 3px;
+}
+
+td.delete-user {
+  display: flex;
+  gap: 10px;
+  height: 26px;
+}
+
+button.setting-user-button {
+  background-color: #ffffff;
+  border: none;
+  font-size: x-large;
+  padding-left: 3px;
+  width: 18px;
+  height: 13px;
+  cursor: pointer;
+}
+
+button.delete-user-button {
+  border: none;
+  background: #ff6767;
+  color: white;
+  border-radius: 15px;
+  border-color: #fdd0d0;
+  width: 17px;
+  height: 17px;
+  margin-left: 4px;
+  text-align: center;
+  padding: 0px 0;
+  margin-top: 9px;
+}
+
+/* ユーザーの追加 */
+
+#add_user_page div {
+  margin-bottom: 10px;
+}
+
+#add_user_page div div {
+  margin-top: 3px;
+}
+
+/* マップ設定の設定スタイル */
+.map-configs {
+  border: 2px solid;
+  padding: 10px;
+  margin-top: 10px;
+  display: flex;
+  align-items: anchor-center;
+}
+
+.map-config>div {
+  margin-bottom: 10px;
+}
+
+.map-config {
+  height: calc(100% - 20px);
+  overflow-y: auto;
+}
+
+span.config-name {
+  font-size: x-large;
+}
+
+.map-configs button {
+  margin: 0 6px;
+  padding: 7px;
+}
+
+.popup_configs {
+  display: flex;
+}
+
+.kintoneplugin-input-text {
+  margin: 3px 0px 10px 0px;
+}
+
+button.remove-config {
+  margin-left: auto !important;
+  margin-top: 10px !important;
+  margin-right: 10px !important;
+  border: none;
+  background: #ff6767;
+  color: white;
+  border-radius: 15px;
+  border-color: #fdd0d0;
+  width: 17px !important;
+  height: 17px;
+  text-align: center;
+  padding: 0px !important;
+  margin-bottom: auto;
+}
+
+button.add-config {
+  color: white;
+  background: #898a8b;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: #898a8b;
+  font-size: 37px;
+}
+
+.required-field {
+  color: red;
+}
+
+input[type="color"] {
+  width: 210px;
+  height: 48px;
+  background-color: #f7f9fa;
+}
+
+#open_url,
+.check-open-map {
+  color: #0078a8;
+  font-size: small;
+}
+
+button#create_Random_url {
+  background: none;
+  border: none;
+  color: #3498db;
+}
+
+/* マップの設定のドロップダウン */
+::picker-icon {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDE0IDc5LjE1MTQ4MSwgMjAxMy8wMy8xMy0xMjowOToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjUwM0JEQzc5RUZENzExRTNBRjRFQ0I1NjlCRDUzOTA5IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjUwM0JEQzdBRUZENzExRTNBRjRFQ0I1NjlCRDUzOTA5Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NTAzQkRDNzdFRkQ3MTFFM0FGNEVDQjU2OUJENTM5MDkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NTAzQkRDNzhFRkQ3MTFFM0FGNEVDQjU2OUJENTM5MDkiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7KovlSAAAAhElEQVR42mI0mX7LjoGB4RADccCWCUjsB2ILIhSD1BwAadAB4qNAbIxHsTFUjQ5Iw3UgNgTiU1AaHRggyV1nggpegppyBoj1kBTrAvFZIDaBqmFgQZK8AMRmQHwe6kyYmAVUjAFdAwPUNGsgvgLl2wDxaWQFLFjcfAKIHaHs4+iSAAEGABHGF74RDCRaAAAAAElFTkSuQmCC) no-repeat center center transparent !important;
+  color: #ffffff00;
+}
+
+.map-config-selects {
+  appearance: base-select;
+  min-width: 210px;
+  height: 48px;
+  border-radius: 0px;
+  background-color: #f7f9fa;
+  border: 1px solid #e3e7e8;
+  color: #3498db;
+  align-items: center;
+  font-size: 14px;
+  margin: 3px 0px 10px 0px;
+}
+
+.map-config ::picker(select) {
+  font-size: 14px;
+}
+
+.map-config-selects option {
+  background-color: white;
+}
+
+/* テキストのスタイル */
+input[type="text"],
+input[type="number"] {
+  min-width: 210px;
+}
+
+/* ログインユーザーの表示 */
+#user_table_body tr:first-child,
+#show_map_users tr:first-child {
+  display: none;
+}
+
+div#map_show_users {
+  height: calc(100% - 44px);
+  overflow: auto;
+}
+
+/* カラーの選択肢 */
+.color_palette_button {
+  display: flex;
+  appearance: base-select;
+  min-width: 210px;
+  height: 48px;
+  border-radius: 0px;
+  background-color: #f7f9fa;
+  border: 1px solid #e3e7e8;
+  color: #3498db;
+  align-items: center;
+  font-size: 14px;
+  margin: 3px 0px 10px 0px;
+  position: relative;
+  z-index: 0;
+}
+
+.show_select_color {
+  background: red;
+  width: 175px;
+  height: 30px;
+  position: static;
+  border: 1px solid black;
+  /* margin-top: 6px; */
+  margin-left: 6px;
+  padding: 2px;
+}
+
+.button_picker {
+  position: static;
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDE0IDc5LjE1MTQ4MSwgMjAxMy8wMy8xMy0xMjowOToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjUwM0JEQzc5RUZENzExRTNBRjRFQ0I1NjlCRDUzOTA5IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjUwM0JEQzdBRUZENzExRTNBRjRFQ0I1NjlCRDUzOTA5Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NTAzQkRDNzdFRkQ3MTFFM0FGNEVDQjU2OUJENTM5MDkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NTAzQkRDNzhFRkQ3MTFFM0FGNEVDQjU2OUJENTM5MDkiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7KovlSAAAAhElEQVR42mI0mX7LjoGB4RADccCWCUjsB2ILIhSD1BwAadAB4qNAbIxHsTFUjQ5Iw3UgNgTiU1AaHRggyV1nggpegppyBoj1kBTrAvFZIDaBqmFgQZK8AMRmQHwe6kyYmAVUjAFdAwPUNGsgvgLl2wDxaWQFLFjcfAKIHaHs4+iSAAEGABHGF74RDCRaAAAAAElFTkSuQmCC) no-repeat center center transparent !important;
+  width: 9px;
+  height: 10px;
+  margin: 0px 5px 0px auto;
+}
+
+.kintoneplugin-table-td-control {
+  position: relative;
+}
+
+div.color_options {
+  display: none;
+  background-color: white;
+  width: 160px;
+  height: 90px;
+  border: 1px solid #b1b1b1;
+  position: absolute;
+  margin-top: -7px;
+  box-shadow: 0px 0px 12px 2px #bbbbbb;
+  z-index: 10;
+}
+
+div.color_options_body {
+  padding: 5px;
+  width: 100%;
+  /* height: 90%; */
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+div.colors {
+  width: 19px;
+  height: 19px;
+  margin: 3px;
+  border-radius: 3px;
+  border: 1px solid #ababab94;
+  cursor: pointer;
+}
+
+/* カラーの選択肢(白黒) */
+.icon-colors {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.icon-colors>* {
+  width: 35px;
+  height: 35px;
+  border: 1px solid #ababab94;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.icon-color-selected {
+  border: 2px solid #b5b5b5;
+}
+
+/* 無効ボタン */
+.valid-label {
+  border-radius: 17px;
+  box-shadow: inset 0 0 4px 0px #0cfb1f;
+  padding: 0 10px;
+  align-content: center;
+  background: #00c73d;
+  height: 24px;
+  margin-left: 4px;
+  color: white;
+  cursor: pointer;
+  width: 50px;
+  text-align: center;
+  margin-right: 5px;
+}
+
+input[name="valid-map"] {
+  display: none;
+}
+
+/* マップごとのユーザー設定 */
+#show_map_users #creater {
+  display: none !important;
+}
+
+span#map_name {
+  font-size: 20px;
+}
+
+/* ==============================================絞り込み======================================= */
+#map_narrow_down>.first-config {
+  display: none !important;
+}
+
+.narrow-down-configs {
+  display: flex;
+  gap: 20px;
+}
+
+.narrow-down-values input {
+  margin: unset
+}
+
+#narrow_down_clear {
+  color: #3498db;
+  border: none;
+  background: none;
+  font-size: 17px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+/* ==============================================絞り込み======================================= */
+
+select:disabled,
+input:disabled{
+  background-color: #ebebeb;
+}
+
+/* ==========================================全体の設定===================================== */
+.administrator-config{
+  margin-top: 29px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+
+  button#show_home_menu:hover,
+  button#show_map_menu:hover {
+    background-color: rgb(167, 165, 165);
+  }
+
+  button.delete-user-button:hover {
+    background: #e13636;
+  }
+
+  button.remove-config:hover {
+    background: #e13636;
+  }
+
+  button.add-config:hover {
+    background: #5f5d5d;
+  }
+
+  .map-config-selects:hover {
+    background-color: #f4f7f8;
+    cursor: pointer;
+  }
+
+  .color_palette_button:hover {
+    background-color: #f4f7f8;
+    cursor: pointer;
+  }
+
+  div.colors:hover {
+    box-shadow: inset 0px 0px 0px 2px #000000;
+  }
+
+  .icon-colors div:hover {
+    box-shadow: inset 0 0 0px 2px #cbcbcb;
+    /* border: 1px solid #cbcbcb; */
+  }
+
+  button#create_Random_url:hover {
+    color: blue;
+  }
+}
+
+/* モバイル */
+@media screen and (max-width: 960px) {
+
+  /* 480px以下に適用されるCSS（スマホ用） */
+  #home_menu_button_area {
+    display: block;
+  }
+
+  .left-menu {
+    height: 100%;
+    position: fixed;
+    z-index: 10;
+    display: flex;
+    padding-right: 5px;
+  }
+
+  .main-contents {
+    width: 95% !important;
+    min-width: 200px;
+    margin-left: 31px;
+  }
+
+  .menu-buttons {
+    display: none;
+  }
+
+  #home_menu_button_area {
+    display: block;
+  }
+
+  .map-configs {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+    border: 1px solid #ccc;
+    margin: 8px 0;
+  }
+
+  .map-configs>div,
+  .map-configs>button {
+    width: 100%;
+    margin: 6px 0;
+    font-size: 1.1em;
+    box-sizing: border-box;
+  }
+
+  .map-configs .config-name {
+    font-size: 1.2em;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .map-configs button {
+    padding: 12px 0;
+    font-size: 1em;
+  }
+
+  /* テーブル */
+  .map-config .kintoneplugin-table {
+    margin-left: 0px;
+  }
+
+  .map-config .cf-plugin-gropu-table,
+  .map-config .kintoneplugin-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .map-config .cf-plugin-gropu-table thead,
+  .map-config .kintoneplugin-table thead {
+    display: none;
+  }
+
+  .map-config .cf-plugin-gropu-table tbody tr,
+  .map-config .kintoneplugin-table tbody tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid #777777;
+    background: #fff;
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03); */
+    padding: 1px;
+  }
+
+  .map-config .cf-plugin-gropu-table td,
+  .map-config .kintoneplugin-table td {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    /* padding: 6px 0; */
+    border-bottom: 1px solid #e3e7e8;
+    border: none;
+  }
+
+  .map-config .cf-plugin-gropu-table td:before,
+  .map-config .kintoneplugin-table td:before {
+    content: attr(data-label);
+    /* flex: 0 0 90px; */
+    font-weight: bold;
+    color: #666;
+    margin-right: 8px;
+    font-size: 0.95em;
+  }
+}

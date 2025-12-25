@@ -1,0 +1,51 @@
+/* 選択肢 */
+select optgroup {
+    color: #4169e1
+}
+
+select option {
+    color: black;
+}
+
+/* select2 */
+span.select2 {
+    display: inline;
+}
+
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid #e3e7e8 !important;
+    box-shadow: 1px 1px 1px #fff inset;
+    min-height: 48px;
+    min-width: 210px;
+    max-width: 305px;
+    background: #f7f9fa !important;
+    border-radius: unset !important;
+    margin: 3px 0px 10px 0px;
+}
+
+/* 選択された選択肢 */
+li.select2-selection__choice {
+    border: 1px solid #3498db !important;
+    color: #3498db;
+    height: 30px;
+    align-content: center;
+    font-size: 16px;
+    background-color: #ffffff00 !important;
+}
+
+li.select2-results__option .select2-results__group {
+    color: #4169e1;
+}
+
+/* 選択肢の×ボタン */
+span.select2-selection__choice__remove {
+    float: right;
+    margin-left: 4px;
+    color: black;
+    margin-right: unset;
+}
+
+/* 選択肢欄 */
+.select2-dropdown{
+    min-width: 210px !important;
+}

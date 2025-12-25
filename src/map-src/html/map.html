@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/1.5.2/css/ionicons.min.css" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" />
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- <link rel="stylesheet" href="./css/loading.css" />
+  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="stylesheet" href="./css/51-modern-default.css" /> -->
+  <link rel="stylesheet" href="../map.css" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css" />
+
+  <script src="https://simonwep.github.io/pickr/dist/pickr.min.js"></script>
+
+  <script src="https://cdn.geolonia.com/community-geocoder.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/@coconmap/leaflet.communitygeocoder/dist/bundle.js"></script>
+  <script
+          src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
+  <script src="https://js.cybozu.com/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+  <!-- <script src="https://unpkg.com/shapefile@0.5.7"></script> -->
+  <script src="https://cdn.jsdelivr.net/gh/four4to6/latlonxy_js@latest/data/latlonxy.js"></script>
+  <script type="module" src="../map.js"></script>
+  <!-- <script type="module" src="./js/clicks.mjs"></script> -->
+  <title>マップ</title>
+  <!-- <link rel="icon" href="https://8clouds-plugin.sakura.ne.jp/webMaps/map/image/8clouds_logo1.png"> -->
+</head>
+
+<body>
+  <!-- ローディング -->
+  <div class="loading-content">
+    <div class="loading-wrap">
+      <i class="fa-solid fa-circle-notch fa-4x fa-spin" style="color: #51a0db;"></i>
+      <!-- <div class="loading-message"><span>マップ表示中</span></div> -->
+    </div>
+  </div>
+  <!-- ローディング -->
+  <header>
+    <div id="map-title">マップ</div>
+    <div id="login-url">
+      <button id="login_user_name">
+      </button>
+      <div id="logout-config">
+        <div id="config_button"><button id="config-page">マップの設定</button></div>
+        <hr>
+        <button id="logput">ログアウト</button>
+      </div>
+    </div>
+  </header>
+  <div id="drawing_menu" style="display: none;">
+    <div id="draw_menu_header">
+      <button id="drawing_menu_close" title="閉じる">-</button>
+      <button id="drawing_end" title="終了">×</button>
+    </div>
+    <div class="draw_buttons">
+      <button id="draw_line">線</button>
+      <div class="draw-line-manu">
+        <input type="color" class="draw-line-color">
+        <!-- <select class="line-style">
+          <option value="solid"><span style="border-top: 1px solid"></span></option>
+          <option value="solid"><span style="border-top: 1px "></span></option>
+        </select> -->
+      </div>
+    </div>
+    <div class="draw_buttons">
+      <button id="draw_circle">円</button>
+      <div class="draw-circle-manu">
+        <div>
+          <input type="color" class="draw-circle-color">
+        </div>
+        <div>
+          <input type="checkbox" id="circle_fill">
+          <label for="circle_fill">塗りつぶす</label>
+        </div>
+        半径
+        <div>
+          <input type="number" class="radius" min="1" value="1">
+          <select class="radius-unit">
+            <option value="m">m</option>
+            <option value="km">km</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="draw_buttons">
+      <button id="draw_area">エリア</button>
+      <div class="draw-area-manu">
+        <input type="color" class="draw-area-color">
+        <div>
+          <input type="checkbox" id="area_fill">
+          <label for="area_fill">塗りつぶす</label>
+        </div>
+      </div>
+    </div>
+    <div class="draw_buttons">
+      <button id="draw_back">1つ前を削除</button>
+    </div>
+    <div class="draw_buttons">
+      <button id="draw_all_delete">すべて削除</button>
+    </div>
+  </div>
+  </div>
+  <div id="menu">
+    <button type="button" id="search_records">絞込み</button>
+    <button type="button" id="address_search">住所</button>
+    <button type="button" id="new_record" style="display: none;">クリックで登録</button>
+    <button id="input_image_button" style="display: none;">画像で登録</button>
+    <input type="file" id="input_image" accept="image/*" style="display: none;" multiple>
+    <div class="select-button" id="map_tiles">
+      <button id="map_tile_select_button" class="show-button-dropdown">
+        <img src="../mapTile.png">
+      </button>
+      <div class="select-options" style="display: none;">
+        <div id="OpenStreetMap" class="button-selects">OpenStreetMap</div>
+        <div id="GRUS画像" class="button-selects">国土地理院 GRUS画像</div>
+        <div id="電子地形図" class="button-selects">国土地理院 電子地形図</div>
+        <div id="淡色地図" class="button-selects">国土地理院 電子地形図（淡色地図）</div>
+      </div>
+    </div>
+    <div class="select-button" id="map-types">
+      <button id="map_type_select_button" class="show-button-dropdown">
+        マップ切替
+      </button>
+      <div class="select-options" style="display: none;"></div>
+    </div>
+    <div class="select-button" id="map-layers">
+      <button id="map_show_other_layer" class="show-button-dropdown">
+        他のマップ
+      </button>
+      <div class="select-options" style="display: none;"></div>
+    </div>
+    <button id="drawing" style="display: none;">描画</button>
+    <button id="add_shapefile">シェープファイルで追加</button>
+    <button id="GSP_start_stop">GPSで経路作成開始</button>
+    <input type="file" id="select_shapefile" style="display: none;" multiple>
+  </div>
+  <div id="controlArtistName"></div>
+  <div id="controlAlbumName"></div>
+  <div id="controlTitleName"></div>
+  <div id="records"></div>
+
+  <div id="map">
+    <button type="button" id="back"><img src="../backCenter.png"
+           title="現在地に戻る"></button>
+  </div>
+</body>
+
+</html>

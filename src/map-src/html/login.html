@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <base href="/webMaps/map/"> -->
+  <!-- <link rel="stylesheet" href="./css/login-style.css" /> -->
+  <link rel="stylesheet" href="../login.css" />
+
+  <script src="https://js.cybozu.com/jquery/3.3.1/jquery.min.js"></script>
+  <script type="module" src="../login.js"></script>
+  <title>マップ</title>
+</head>
+
+<body>
+  <div id="login-page">
+    <h2>ログイン画面</h2>
+    <div id="login_form">
+      <span>ログインID</span><br>
+      <input type="text" id="user_name">
+      <br>
+      <span>パスワード</span><br>
+      <input type="password" id="password">
+      <br>
+      <div><span id="error_message"></span></div>
+      <div id="buttons">
+        <div id="login">
+          <button id="login-button">ログイン</button>
+        </div>
+      </div>
+      <div>
+        <img src="../8clouds_logo1.png"
+             style="width: 100px; margin-top: 20px">
+      </div>
+    </div>
+    <div id="certification">
+      <span>メールに送信された認証コードを入力してください。</span><br>
+      <span>（認証コード有効期限は10分です）</span><br>
+      <input type="text" id="certification_pass">
+      <br>
+      <div id="pass_error_message"></div>
+      <div id="certification_button_area">
+        <button id="certification_button">認証</button><br>
+        <button id="resubmit" disabled>メールを再送信</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

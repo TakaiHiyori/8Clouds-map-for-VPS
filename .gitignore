@@ -1,0 +1,44 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 自動生成ファイルの除外
+README.md
+CHANGELOG.md
+
+# テスト結果とカバレッジレポート
+coverage/
+test-report.html
+*.lcov
+.nyc_output/
+jest-coverage/
+
+# Jest関連の一時ファイル
+.jest/
+jest.config.*.js.tmp
+
+# その他のテスト関連ファイル
+__coverage__/
+.coverage/
+htmlcov/

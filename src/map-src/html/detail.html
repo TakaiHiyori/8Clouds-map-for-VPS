@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <base href="/webMaps/map/"> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- <link rel="stylesheet" href="./css/loading.css" />
+  <link rel="stylesheet" href="./css/detail-style.css" />
+  <link rel="stylesheet" href="./css/51-modern-default.css" /> -->
+  <link rel="stylesheet" href="../../detail.css" />
+
+  <script src="https://js.cybozu.com/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.6.1/build/global/luxon.min.js"></script>
+  <script type="module" src="../../detail.js"></script>
+  <title>詳細画面</title>
+</head>
+
+<body>
+  <!-- ローディング -->
+  <div class="loading-content">
+    <div class="loading-wrap">
+      <i class="fa-solid fa-circle-notch fa-4x fa-spin" style="color: #51a0db;"></i>
+      <!-- <div class="loading-message"><span>マップ表示中</span></div> -->
+    </div>
+  </div>
+  <!-- ローディング -->
+  <div id="map-title">詳細</div>
+  <div id="detail_buttons">
+    <button class="kintoneplugin-button-dialog-cancel" id="record_edit">編集する</button>
+    <button id="back_map" class="kintoneplugin-button-dialog-cancel">戻る</button>
+  </div>
+  <div id="record_buttons" style="display: none">
+    <button class="kintoneplugin-button-dialog-ok" id="record_save">保存</button>
+    <button class="kintoneplugin-button-dialog-cancel" id="record_cansel">キャンセル</button>
+  </div>
+  <div id="kintone_detail">
+  </div>
+</body>
+
+</html>

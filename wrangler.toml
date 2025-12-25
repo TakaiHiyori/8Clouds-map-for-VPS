@@ -1,0 +1,23 @@
+name = "kanban-plugin-worker"
+main = "src/worker/index.js"
+compatibility_date = "2025-06-16"
+account_id = "543792f3825df9ef9b999b683d431bc7"
+
+[env.production]
+name = "kanban-plugin-worker-prod"
+
+# R2バケット設定
+[[r2_buckets]]
+binding = "KANBAN_BUCKET"
+bucket_name = "kanban-plugin-storage"
+
+# 環境変数設定（必要に応じて）
+[vars]
+ENVIRONMENT = "development"
+ALLOW_DEVELOPMENT = "true"
+MAX_STORAGE_PER_APP = "1"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOW_DEVELOPMENT = "false"
+MAX_STORAGE_PER_APP = "1"

@@ -1,0 +1,288 @@
+div#map-title {
+  font-weight: bold;
+  font-size: xx-large;
+}
+
+/* ボタンをヘッダーに固定する */
+/* div#detail_buttons,
+#record_buttons {
+  position: sticky;
+  top: 0px;
+  z-index: 100;
+  background-color: #ffffff;
+  padding-top: 6px;
+} */
+
+#kintone_detail_table>tr,
+#kintone_detail_table>tr>td,
+#kintone_detail_table>tr>th {
+  border-style: none !important;
+}
+
+#kintone_detail_table>tr>th.kintoneplugin-table-th-blankspace {
+  min-width: 170px;
+}
+
+.kintoneplugin-table {
+  margin-left: 0px !important;
+}
+
+.kintoneplugin-table .kintoneplugin-table .dropbox-image {
+  max-width: 230px;
+  max-height: 230px;
+}
+
+.dropbox-image {
+  max-width: 100px;
+  max-height: 100px;
+}
+
+/*  */
+.field-div {
+  margin-right: 15px;
+}
+
+.kintone-lyput-row {
+  margin-bottom: 10px;
+}
+
+.kintone-lyput-row,
+.group-layout {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+div.field-value-div {
+  border: 1px solid #d8d8d8;
+  background-color: #eee;
+  min-height: 30px;
+}
+
+details {
+  border-color: #e3e7e8;
+  border-width: 1px;
+  border-style: solid;
+  min-width: 517px;
+  padding: 10px;
+}
+
+summary {
+  font-size: 20px;
+}
+
+.field-value {
+  padding: 4px;
+}
+
+.field-value>* {
+  overflow-wrap: break-word;
+}
+
+input.kintoneplugin-input-text {
+  width: 100%;
+}
+
+img.field-value-image {
+  max-width: 160px;
+  max-height: 160px;
+}
+
+table img.field-value-image {
+  max-width: 300px;
+  max-height: 300px;
+}
+
+table tbody .td-name {
+  display: none;
+}
+
+textarea {
+  width: 100%;
+  height: 80px;
+}
+
+.edit-table tbody tr:first-child {
+  display: none;
+}
+
+/* テーブルの増やす、減らすボタンを固定する */
+/* .kintoneplugin-table td.kintoneplugin-table-td-operation {
+  border-right: 0;
+  border-bottom: 0;
+  background-color: #ffffff;
+  border-left: 1px solid #000000;
+} */
+
+button#back-button {
+  font-size: 15px;
+  border: none;
+  border-bottom: solid 1px;
+  background-color: #ffffff00;
+  color: #3498db;
+}
+
+/* 添付ファイル */
+.post_image label {
+  display: inline-block;
+  border: 1px solid #e3e7e8;
+  color: #3498db;
+  background-color: #f7f9fa;
+  text-align: center;
+  padding: 10px 30px;
+  margin-bottom: 10px;
+}
+
+.post_image input[type="file"] {
+  display: none;
+}
+
+button.upload-cansel-button {
+  margin-left: 10px;
+  border: 1px solid red;
+  background: white;
+  border-radius: 50%;
+  font-size: 11px;
+  background-color: #ff7171;
+  color: white;
+  text-align: center;
+}
+
+.file-values {
+  margin: 5px 0;
+  display: flex;
+}
+
+.file-values button {
+  margin-left: 3px;
+  width: 25px;
+  height: 25px;
+  text-align: center;
+  font-size: 17px;
+}
+
+/* ドロップダウン */
+::picker-icon {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDE0IDc5LjE1MTQ4MSwgMjAxMy8wMy8xMy0xMjowOToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjUwM0JEQzc5RUZENzExRTNBRjRFQ0I1NjlCRDUzOTA5IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjUwM0JEQzdBRUZENzExRTNBRjRFQ0I1NjlCRDUzOTA5Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NTAzQkRDNzdFRkQ3MTFFM0FGNEVDQjU2OUJENTM5MDkiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NTAzQkRDNzhFRkQ3MTFFM0FGNEVDQjU2OUJENTM5MDkiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7KovlSAAAAhElEQVR42mI0mX7LjoGB4RADccCWCUjsB2ILIhSD1BwAadAB4qNAbIxHsTFUjQ5Iw3UgNgTiU1AaHRggyV1nggpegppyBoj1kBTrAvFZIDaBqmFgQZK8AMRmQHwe6kyYmAVUjAFdAwPUNGsgvgLl2wDxaWQFLFjcfAKIHaHs4+iSAAEGABHGF74RDCRaAAAAAElFTkSuQmCC) no-repeat center center transparent !important;
+  color: #ffffff00;
+}
+
+select {
+  appearance: base-select;
+  min-width: 210px;
+  height: 48px;
+  border-radius: 0px;
+  background-color: #f7f9fa;
+  border: 1px solid #e3e7e8;
+  color: #3498db;
+  align-items: center;
+  font-size: 14px;
+  margin: 3px 0px 10px 0px;
+}
+
+select ::picker(select) {
+  font-size: 14px;
+}
+
+select option {
+  background-color: white;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  select:hover {
+    background-color: #f4f7f8;
+    cursor: pointer;
+  }
+
+  .kintoneplugin-dropdown-list-item:hover {
+    background-color: aliceblue;
+  }
+}
+
+@media screen and (max-width: 960px) {
+  details {
+    /* width: 95% !important; */
+    min-width: 0% !important;
+  }
+
+  .kintone-space {
+    min-width: unset;
+  }
+
+  .kintone-lyput-row,
+  .group-layout {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .field-div {
+    max-width: 100%;
+    min-width: 0% !important;
+  }
+
+  /* てーぶる */
+  /* .kintoneplugin-table {
+    width: calc(100% - 15px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-left: 0px !important;
+  }
+
+  .kintoneplugin-table thead {
+    display: none;
+  }
+
+  .kintoneplugin-table tbody {
+    width: calc(100% - 15px);
+  }
+
+  .kintoneplugin-table tbody tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid #777777;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    padding: 1px;
+  }
+
+  .kintoneplugin-table td {
+    width: 100%;
+    align-items: center;
+    border-style: none !important;
+    border-bottom: 1px solid #e3e7e8 !important;
+    display: block;
+    padding: 1px 0 7px 0 !important;
+  }
+
+  .kintoneplugin-table-td-control {
+    padding: 0px !important;
+  }
+
+  .kintoneplugin-table-td-control-value {
+    padding: 0px !important;
+  }
+
+  .kintoneplugin-table td:before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #666;
+    font-size: 0.95em;
+  }
+  .kintoneplugin-table .field-value {
+    margin-right: 8px;
+  }
+
+  .kintoneplugin-table .td-name {
+    background-color: #3498db;
+    display: inline-block;
+    color: white;
+    width: 100%;
+  }
+
+  .kintoneplugin-table
+    .kintoneplugin-table-td-control-value
+    > *:not(:first-child) {
+    margin-left: 4px;
+    margin-top: 4px;
+  } */
+}

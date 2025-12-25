@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>依存関係グラフ</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        overflow: hidden;
+        background-color: #f5f5f5;
+      }
+      .node circle {
+        fill: #66c2a5;
+        stroke: #fff;
+        stroke-width: 1.5px;
+      }
+      .node text {
+        font-size: 10px;
+      }
+      .link {
+        fill: none;
+        stroke: #ccc;
+        stroke-width: 1.5px;
+      }
+      .search-container {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 100;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .highlighted circle {
+        fill: #fc8d62;
+      }
+      .highlighted text {
+        font-weight: bold;
+      }
+      .controls {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      input,
+      button,
+      select {
+        margin: 5px 0;
+        padding: 5px;
+      }
+      .tooltip {
+        position: absolute;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="search-container">
+      <input type="text" id="search" placeholder="ファイル名を検索" />
+      <button id="reset">表示リセット</button>
+      <div>
+        <select id="colorScheme">
+          <option value="default">デフォルト配色</option>
+          <option value="folder">フォルダ別配色</option>
+          <option value="dependencies">依存数別配色</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="zoomIn">拡大(+)</button>
+      <button id="zoomOut">縮小(-)</button>
+      <button id="zoomReset">ズームリセット</button>
+      <div>
+        <button id="showCircular">循環依存を強調</button>
+      </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+    <svg width="100%" height="2000"></svg>
+    <script>
+      // 依存関係データの読み込み
+      fetch('deps-structure.json?' + new Date().getTime()) // タイムスタンプを追加してキャッシュを回避
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          console.log('JSONファイルを正常に読み込みました');
+          return response.json();
+        })
+        .then((data) => {
+          console.log('JSONデータを解析しました', Object.keys(data).length, '個のモジュールがあります');
+
+          // data.modules が存在する場合は dependency-cruiser の新しい形式
+          const modules = data.modules || data;
+
+          // データを適切な形式に変換
+          const dependencies = [];
+
+          if (Array.isArray(modules)) {
+            // 新しい形式: data.modulesが配列
+            modules.forEach((module) => {
+              if (module.source) {
+                const depends = [];
+                if (module.dependencies) {
+                  module.dependencies.forEach((dep) => {
+                    if (dep.resolved) {
+                      depends.push(dep.resolved);
+                    }
+                  });
+                }
+                dependencies.push({
+                  id: module.source,
+                  depends: depends,
+                });
+              }
+            });
+          } else {
+            // 古い形式: データがオブジェクト
+            Object.keys(modules).forEach((source) => {
+              dependencies.push({
+                id: source,
+                depends: modules[source],
+              });
+            });
+          }
+
+          console.log('依存関係データを変換しました', dependencies.length, '個のノードがあります');
+          initGraph(dependencies);
+        })
+        .catch((error) => {
+          console.error('JSONデータの読み込みに失敗しました:', error);
+          // エラー表示を追加
+          document.body.innerHTML += `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                    background: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.2);
+                    max-width: 80%; text-align: center;">
+          <h2>依存関係データの読み込みに失敗しました</h2>
+          <p>${error.message}</p>
+          <p>deps-structure.json ファイルが存在し、適切な形式であることを確認してください。</p>
+          <button onclick="location.reload()">再読み込み</button>
+        </div>`;
+        });
+
+      function initGraphWithSampleData() {
+        // テキスト形式の依存関係をJSONに変換
+        const depsText = document.getElementById('depsData').textContent;
+        const dependencies = parseDepsText(depsText);
+        initGraph(dependencies);
+      }
+
+      function parseDepsText(text) {
+        const lines = text.trim().split('\n');
+        const dependencies = [];
+        let currentModule = null;
+
+        for (const line of lines) {
+          if (!line.startsWith(' ')) {
+            currentModule = {
+              id: line.trim(),
+              depends: [],
+            };
+            dependencies.push(currentModule);
+          } else if (currentModule) {
+            currentModule.depends.push(line.trim());
+          }
+        }
+
+        return dependencies;
+      }
+
+      function initGraph(dependencies) {
+        // D3.jsで力学モデルの可視化を実装
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        // ノードとリンクの準備
+        const nodes = [];
+        const links = [];
+        const nodeMap = {};
+
+        // ノードの作成
+        dependencies.forEach((dep) => {
+          if (!nodeMap[dep.id]) {
+            const node = { id: dep.id, name: dep.id };
+            nodes.push(node);
+            nodeMap[dep.id] = node;
+          }
+
+          dep.depends.forEach((target) => {
+            if (!nodeMap[target]) {
+              const node = { id: target, name: target };
+              nodes.push(node);
+              nodeMap[target] = node;
+            }
+
+            links.push({
+              source: dep.id,
+              target: target,
+            });
+          });
+        });
+
+        // 循環依存の検出
+        const cyclicDependencies = findCyclicDependencies(dependencies);
+
+        // D3.jsでのレイアウト設定
+        const svg = d3.select('svg');
+        const g = svg.append('g');
+
+        // ズーム機能
+        const zoom = d3
+          .zoom()
+          .scaleExtent([0.1, 3])
+          .on('zoom', (event) => {
+            g.attr('transform', event.transform);
+          });
+
+        svg.call(zoom);
+
+        // ツールチップ
+        const tooltip = d3.select('#tooltip');
+
+        // 矢印のマーカー定義
+        svg
+          .append('defs')
+          .append('marker')
+          .attr('id', 'arrowhead')
+          .attr('viewBox', '-0 -5 10 10')
+          .attr('refX', 20)
+          .attr('refY', 0)
+          .attr('orient', 'auto')
+          .attr('markerWidth', 6)
+          .attr('markerHeight', 6)
+          .append('path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', '#999');
+
+        // 循環依存用の赤い矢印マーカー
+        svg
+          .append('defs')
+          .append('marker')
+          .attr('id', 'arrowhead-cyclic')
+          .attr('viewBox', '-0 -5 10 10')
+          .attr('refX', 20)
+          .attr('refY', 0)
+          .attr('orient', 'auto')
+          .attr('markerWidth', 6)
+          .attr('markerHeight', 6)
+          .append('path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('fill', '#ff0000');
+
+        // 力学モデルシミュレーションの設定
+        const simulation = d3
+          .forceSimulation(nodes)
+          .force(
+            'link',
+            d3
+              .forceLink(links)
+              .id((d) => d.id)
+              .distance(150)
+          )
+          .force('charge', d3.forceManyBody().strength(-300))
+          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('x', d3.forceX(width / 2).strength(0.1))
+          .force('y', d3.forceY(height / 2).strength(0.1));
+
+        // リンク（矢印）の描画
+        const link = g
+          .selectAll('.link')
+          .data(links)
+          .enter()
+          .append('path')
+          .attr('class', 'link')
+          .attr('marker-end', (d) => {
+            // 循環依存の場合は赤い矢印を使用
+            const isCyclic = cyclicDependencies.some(
+              (cycle) => cycle.includes(d.source.id) && cycle.includes(d.target.id)
+            );
+            return isCyclic ? 'url(#arrowhead-cyclic)' : 'url(#arrowhead)';
+          })
+          .style('stroke', (d) => {
+            // 循環依存の場合は赤く表示
+            const isCyclic = cyclicDependencies.some(
+              (cycle) => cycle.includes(d.source.id) && cycle.includes(d.target.id)
+            );
+            return isCyclic ? '#ff0000' : '#ccc';
+          })
+          .style('stroke-width', (d) => {
+            const isCyclic = cyclicDependencies.some(
+              (cycle) => cycle.includes(d.source.id) && cycle.includes(d.target.id)
+            );
+            return isCyclic ? '2px' : '1.5px';
+          });
+
+        // ノードの描画
+        const node = g
+          .selectAll('.node')
+          .data(nodes)
+          .enter()
+          .append('g')
+          .attr('class', 'node')
+          .call(d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended))
+          .on('mouseover', (event, d) => {
+            // 依存されるモジュール数とこのモジュールが依存するモジュール数をカウント
+            const inDegree = links.filter((l) => l.target.id === d.id).length;
+            const outDegree = links.filter((l) => l.source.id === d.id).length;
+
+            tooltip
+              .style('opacity', 1)
+              .html(
+                `<strong>${d.id}</strong><br>依存しているモジュール数: ${outDegree}<br>依存されているモジュール数: ${inDegree}`
+              )
+              .style('left', event.pageX + 10 + 'px')
+              .style('top', event.pageY + 10 + 'px');
+          })
+          .on('mouseout', () => {
+            tooltip.style('opacity', 0);
+          });
+
+        node
+          .append('circle')
+          .attr('r', (d) => {
+            // 依存される数に基づいてサイズを調整
+            const inDegree = links.filter((l) => l.target.id === d.id).length;
+            return Math.max(5, Math.min(15, 5 + inDegree / 2));
+          })
+          .attr('fill', (d) => getNodeColor(d, 'default'));
+
+        // ラベルの追加
+        node
+          .append('text')
+          .attr('dy', -10)
+          .attr('text-anchor', 'middle')
+          .text((d) => {
+            // パスからファイル名だけを抽出
+            const parts = d.id.split('/');
+            return parts[parts.length - 1];
+          });
+
+        // シミュレーション更新時の位置更新
+        simulation.on('tick', () => {
+          link.attr('d', (d) => {
+            const dx = d.target.x - d.source.x;
+            const dy = d.target.y - d.source.y;
+            const dr = Math.sqrt(dx * dx + dy * dy) * 1.5;
+            return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+          });
+
+          node.attr('transform', (d) => `translate(${d.x},${d.y})`);
+        });
+
+        // ドラッグ関連の関数
+        function dragstarted(event, d) {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+          d.fx = event.x;
+          d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+          if (!event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        }
+
+        // 検索機能
+        const searchInput = document.getElementById('search');
+        searchInput.addEventListener('input', function () {
+          const searchTerm = this.value.toLowerCase();
+
+          if (searchTerm === '') {
+            node.classed('highlighted', false);
+            link.classed('highlighted', false);
+            return;
+          }
+
+          // ノードの強調表示
+          node.classed('highlighted', (d) => d.id.toLowerCase().includes(searchTerm));
+
+          // 関連するリンクの強調表示
+          link.classed(
+            'highlighted',
+            (l) => l.source.id.toLowerCase().includes(searchTerm) || l.target.id.toLowerCase().includes(searchTerm)
+          );
+        });
+
+        // リセットボタン
+        document.getElementById('reset').addEventListener('click', function () {
+          searchInput.value = '';
+          node.classed('highlighted', false);
+          link.classed('highlighted', false);
+
+          // ビューをリセット
+          svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+        });
+
+        // ズームコントロール
+        document.getElementById('zoomIn').addEventListener('click', function () {
+          svg.transition().duration(300).call(zoom.scaleBy, 1.2);
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', function () {
+          svg.transition().duration(300).call(zoom.scaleBy, 0.8);
+        });
+
+        document.getElementById('zoomReset').addEventListener('click', function () {
+          svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+        });
+
+        // 循環依存の強調表示
+        document.getElementById('showCircular').addEventListener('click', function () {
+          const isCyclic = link.style('stroke') === 'rgb(255, 0, 0)';
+
+          if (isCyclic) {
+            // 元に戻す
+            link.style('stroke', (d) => {
+              const isCyclic = cyclicDependencies.some(
+                (cycle) => cycle.includes(d.source.id) && cycle.includes(d.target.id)
+              );
+              return isCyclic ? '#ff0000' : '#ccc';
+            });
+            node.select('circle').attr('fill', (d) => getNodeColor(d, document.getElementById('colorScheme').value));
+          } else {
+            // 循環依存のみ強調
+            link.style('stroke', (d) => {
+              const isCyclic = cyclicDependencies.some(
+                (cycle) => cycle.includes(d.source.id) && cycle.includes(d.target.id)
+              );
+              return isCyclic ? '#ff0000' : '#eee';
+            });
+
+            // 循環依存に関わるノードを強調
+            const cyclicNodes = new Set();
+            cyclicDependencies.forEach((cycle) => {
+              cycle.forEach((nodeId) => cyclicNodes.add(nodeId));
+            });
+
+            node.select('circle').attr('fill', (d) => {
+              return cyclicNodes.has(d.id) ? '#fc8d62' : '#eee';
+            });
+          }
+
+          this.textContent = this.textContent === '循環依存を強調' ? '元に戻す' : '循環依存を強調';
+        });
+
+        // 配色スキームの変更
+        document.getElementById('colorScheme').addEventListener('change', function () {
+          node.select('circle').attr('fill', (d) => getNodeColor(d, this.value));
+        });
+
+        // ノードの色を取得する関数
+        function getNodeColor(d, scheme) {
+          switch (scheme) {
+            case 'folder':
+              // フォルダ構造に基づいて色を設定
+              if (d.id.includes('/config/')) return '#66c2a5'; // 設定関連
+              if (d.id.includes('/desktop/')) return '#fc8d62'; // デスクトップ関連
+              if (d.id.includes('core/')) return '#8da0cb'; // コア機能
+              if (d.id.includes('thirdparties/')) return '#e78ac3'; // サードパーティ
+              if (d.id.includes('/api/')) return '#a6d854'; // API関連
+              if (d.id.includes('/modal/')) return '#ffd92f'; // モーダル関連
+              if (d.id.includes('/query/')) return '#e5c494'; // クエリ関連
+              if (d.id.includes('/button/')) return '#b3b3b3'; // ボタン関連
+              return '#cccccc'; // その他
+
+            case 'dependencies':
+              // 依存数に基づく色
+              const inDegree = links.filter((l) => l.target.id === d.id).length;
+              const outDegree = links.filter((l) => l.source.id === d.id).length;
+
+              if (inDegree > 5) return '#d53e4f'; // 多く依存されている
+              if (outDegree > 5) return '#3288bd'; // 多く依存している
+              if (inDegree > 0 && outDegree > 0) return '#66c2a5'; // バランスが取れている
+              if (inDegree > 0) return '#abdda4'; // 依存されている
+              if (outDegree > 0) return '#fdae61'; // 依存している
+              return '#ffffbf'; // 単独
+
+            default:
+              // デフォルト色
+              return '#66c2a5';
+          }
+        }
+      }
+
+      // 循環依存を検出する関数
+      function findCyclicDependencies(dependencies) {
+        const graph = {};
+        dependencies.forEach((dep) => {
+          graph[dep.id] = dep.depends;
+        });
+
+        const visited = new Set();
+        const recursionStack = new Set();
+        const cycles = [];
+
+        function detectCycle(node, path = []) {
+          if (recursionStack.has(node)) {
+            // 循環を検出
+            const cycleStart = path.indexOf(node);
+            const cycle = path.slice(cycleStart);
+            cycles.push([...cycle, node]);
+            return;
+          }
+
+          if (visited.has(node) || !graph[node]) return;
+
+          visited.add(node);
+          recursionStack.add(node);
+          path.push(node);
+
+          for (const neighbor of graph[node] || []) {
+            detectCycle(neighbor, [...path]);
+          }
+
+          recursionStack.delete(node);
+        }
+
+        for (const node in graph) {
+          if (!visited.has(node)) {
+            detectCycle(node);
+          }
+        }
+
+        return cycles;
+      }
+    </script>
+  </body>
+</html>

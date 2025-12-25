@@ -1,0 +1,17 @@
+npm run build:server
+npm run deploy:server
+npm run deploy:server:html
+npm run deploy:server:js
+npm run deploy:server:css
+
+http://133.167.91.11/benri/
+https://solution.8clouds.co.jp/benri/8CloudsMap/
+
+node benri-map-test-index.js
+
+wrangler login
+cd email-test
+wrangler publish
+
+mp2 start
+mp2 stop

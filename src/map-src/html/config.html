@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <base href="/webMaps/map/"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" />
+    <!-- <link rel="stylesheet" href="./css/loading.css" />
+    <link rel="stylesheet" href="./css/config-style.css" />
+    <link rel="stylesheet" href="./css/multiple-select-style.css" />
+    <link rel="stylesheet" href="./css/51-modern-default.css" /> -->
+    <link rel="stylesheet" href="../config.css" />
+
+    <script src="https://js.cybozu.com/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+    <script type="module" src="../config.js"></script>
+    <title>設定画面</title>
+</head>
+
+<body>
+    <!-- ローディング -->
+    <div class="loading-content">
+        <div class="loading-wrap">
+            <i class="fa-solid fa-circle-notch fa-4x fa-spin" style="color: #51a0db;"></i>
+            <!-- <div class="loading-message"><span>マップ表示中</span></div> -->
+        </div>
+    </div>
+    <div id="map-title">設定画面</div>
+    <div class="container">
+        <div class="left-menu">
+            <div class="menu-buttons">
+                <div id="home_menu">
+                    <button id="show_home_menu">ホーム</button>
+                </div>
+                <div id="map_menu">
+                    <button id="show_map_menu">マップの設定</button>
+                </div>
+                <div id="back_map">
+                    <button id="back_map">マップに戻る</button>
+                </div>
+            </div>
+            <div id="home_menu_button_area">
+                <img id="home_menu_button" src="https://8clouds-plugin.sakura.ne.jp/webMaps/map/image/mapmune.png">
+            </div>
+        </div>
+        <div class="main-contents">
+            <div id="config_home_manu">
+                <div id="show_Registration_information">
+                    <div>
+                        <div>
+                            <span>kintoneのドメイン名</span>
+                        </div>
+                        <div class="kintoneplugin-input-outer">
+                            <h3 id="domain"></h3>
+                        </div>
+                    </div>
+                    <!-- <div>
+                        <div>
+                            <span>契約中のプラン</span>
+                        </div>
+                        <div class="kintoneplugin-input-outer">
+                            <h3 id="plan"></h3>
+                        </div>
+                    </div> -->
+                    <div id="show_users">
+                        <div>登録中のユーザー</div>
+                        <div id="loginusers">
+                            <table id="user_teble">
+                                <thead>
+                                    <th>ユーザー名</th>
+                                    <th>ログインID</th>
+                                    <th>メールアドレス</th>
+                                    <th id="hide_header"></th>
+                                </thead>
+                                <tbody id="user_table_body">
+                                    <tr>
+                                        <td>
+                                            <span class="user-name"></span>
+                                        </td>
+                                        <td>
+                                            <span class="user-id"></span>
+                                        </td>
+                                        <td>
+                                            <span class="user-mail"></span>
+                                        </td>
+                                        <td class="delete-user">
+                                            <button class="setting-user-button" title="ユーザーの設定">⚙</button>
+                                            <button class="delete-user-button" title="ユーザーを削除">×</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div id="add_user_button">
+                                <button class="kintoneplugin-button-normal" id="add_user">追加</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class="administrator-config">
+                        <div class="timezone-config block">
+                            <div><span>タイムゾーン</span></div>
+                            <select id="time-zone" class="map-config-selects">
+                                <option value="Etc/GMT+12">（UTC-12:00）国際日付変更線 西側</option>
+                                <option value="Etc/GMT+11">（UTC-11:00）協定世界時-11</option>
+                                <option value="Pacific/Honolulu">（UTC-10:00）ハワイ</option>
+                                <option value="America/Anchorage">（UTC-09:00）アラスカ</option>
+                                <option value="America/Santa_Isabel">（UTC-08:00）バハカリフォルニア</option>
+                                <option value="America/Los_Angeles">（UTC-08:00）太平洋標準時 (米国およびカナダ)</option>
+                                <option value="America/Phoenix">（UTC-07:00）アリゾナ</option>
+                                <option value="America/Denver">（UTC-07:00）山地標準時 (米国およびカナダ)</option>
+                                <option value="America/Guatemala">（UTC-06:00）中央アメリカ</option>
+                                <option value="America/Chihuahua">（UTC-07:00）チワワ、ラパス、マサトラン</option>
+                                <option value="America/Chicago">（UTC-06:00）中部標準時 (米国およびカナダ)</option>
+                                <option value="America/Mexico_City">（UTC-06:00）グアダラハラ、メキシコシティ、モンテレー</option>
+                                <option value="America/Regina">（UTC-06:00）サスカチュワン</option>
+                                <option value="America/Indiana/Indianapolis">（UTC-05:00）インディアナ東部</option>
+                                <option value="America/Bogota">（UTC-05:00）ボゴタ、リマ、キト</option>
+                                <option value="America/New_York">（UTC-05:00）東部標準時 (米国およびカナダ)</option>
+                                <option value="America/Cuiaba">（UTC-04:00）クイアバ</option>
+                                <option value="America/Halifax">（UTC-04:00）大西洋標準時 (カナダ)</option>
+                                <option value="America/Santiago">（UTC-04:00）サンチアゴ</option>
+                                <option value="America/La_Paz">（UTC-04:00）ジョージタウン、ラパス、マナウス、サンフアン</option>
+                                <option value="America/Caracas">（UTC-04:30）カラカス</option>
+                                <option value="America/Asuncion">（UTC-04:00）アスンシオン</option>
+                                <option value="America/St_Johns">（UTC-03:30）ニューファンドランド</option>
+                                <option value="America/Sao_Paulo">（UTC-03:00）ブラジリア</option>
+                                <option value="America/Cayenne">（UTC-03:00）カイエンヌ、フォルタレザ</option>
+                                <option value="America/Montevideo">（UTC-03:00）モンテビデオ</option>
+                                <option value="America/Argentina/Buenos_Aires">（UTC-03:00）ブエノスアイレス</option>
+                                <option value="Etc/GMT+2">（UTC-02:00）協定世界時-2</option>
+                                <option value="America/Godthab">（UTC-02:00）グリーンランド</option>
+                                <option value="Atlantic/Azores">（UTC-01:00）アゾレス</option>
+                                <option value="Atlantic/Cape_Verde">（UTC-01:00）カーボベルデ諸島</option>
+                                <option value="Europe/London">（UTC+00:00）ダブリン、エジンバラ、リスボン、ロンドン</option>
+                                <option value="Atlantic/Reykjavik">（UTC+00:00）モンロビア、レイキャビク</option>
+                                <option value="Etc/GMT">（UTC+00:00）協定世界時</option>
+                                <option value="Africa/Casablanca">（UTC+00:00）カサブランカ</option>
+                                <option value="Europe/Berlin">（UTC+01:00）アムステルダム、ベルリン、ベルン、ローマ、ストックホルム、ウィーン</option>
+                                <option value="Europe/Budapest">（UTC+01:00）ベオグラード、ブラチスラバ、ブダペスト、リュブリャナ、プラハ</option>
+                                <option value="Europe/Warsaw">（UTC+01:00）サラエボ、スコピエ、ワルシャワ、ザグレブ</option>
+                                <option value="Europe/Paris">（UTC+01:00）ブリュッセル、コペンハーゲン、マドリード、パリ</option>
+                                <option value="Africa/Windhoek">（UTC+01:00）ウィントフック</option>
+                                <option value="Africa/Lagos">（UTC+01:00）西中央アフリカ</option>
+                                <option value="Africa/Cairo">（UTC+02:00）カイロ</option>
+                                <option value="Asia/Beirut">（UTC+02:00）ベイルート</option>
+                                <option value="Africa/Johannesburg">（UTC+02:00）ハラーレ、プレトリア</option>
+                                <option value="Asia/Jerusalem">（UTC+02:00）エルサレム</option>
+                                <option value="Europe/Kiev">（UTC+02:00）ヘルシンキ、キーウ、リガ、ソフィア、タリン、ビリニュス</option>
+                                <option value="Africa/Nairobi">（UTC+03:00）ナイロビ</option>
+                                <option value="Europe/Moscow">（UTC+03:00）モスクワ、サンクトペテルブルグ、ボルゴグラード</option>
+                                <option value="Asia/Baghdad">（UTC+03:00）バグダッド</option>
+                                <option value="Europe/Istanbul">（UTC+03:00）アテネ、ブカレスト、イスタンブール</option>
+                                <option value="Asia/Damascus">（UTC+03:00）ダマスカス</option>
+                                <option value="Asia/Riyadh">（UTC+03:00）クエート、リヤド</option>
+                                <option value="Europe/Minsk">（UTC+03:00）ミンスク</option>
+                                <option value="Asia/Amman">（UTC+03:00）アンマン</option>
+                                <option value="Asia/Tehran">（UTC+03:30）テヘラン</option>
+                                <option value="Asia/Yerevan">（UTC+04:00）エレバン</option>
+                                <option value="Asia/Baku">（UTC+04:00）バクー</option>
+                                <option value="Asia/Dubai">（UTC+04:00）アブダビ、マスカット</option>
+                                <option value="Asia/Tbilisi">（UTC+04:00）トビリシ</option>
+                                <option value="Indian/Mauritius">（UTC+04:00）ポートルイス</option>
+                                <option value="Asia/Kabul">（UTC+04:30）カブール</option>
+                                <option value="Asia/Tashkent">（UTC+05:00）タシケント</option>
+                                <option value="Asia/Almaty">（UTC+05:00）アスタナ</option>
+                                <option value="Asia/Karachi">（UTC+05:00）イスラマバード、カラチ</option>
+                                <option value="Asia/Yekaterinburg">（UTC+05:00）エカテリンブルグ</option>
+                                <option value="Asia/Kolkata">（UTC+05:30）チェンナイ、コルカタ、ムンバイ、ニューデリー</option>
+                                <option value="Asia/Colombo">（UTC+05:30）スリジャヤワルダナプラコッテ</option>
+                                <option value="Asia/Kathmandu">（UTC+05:45）カトマンズ</option>
+                                <option value="Asia/Dhaka">（UTC+06:00）ダッカ</option>
+                                <option value="Asia/Yangon">（UTC+06:30）ヤンゴン</option>
+                                <option value="Asia/Bangkok">（UTC+07:00）バンコク、ハノイ、ジャカルタ</option>
+                                <option value="Asia/Novosibirsk">（UTC+07:00）ノヴォシビルスク</option>
+                                <option value="Asia/Krasnoyarsk">（UTC+07:00）クラスノヤルスク</option>
+                                <option value="Asia/Ulaanbaatar">（UTC+08:00）ウランバートル</option>
+                                <option value="Asia/Shanghai">（UTC+08:00）北京、重慶、香港、ウルムチ</option>
+                                <option value="Asia/Taipei">（UTC+08:00）台北</option>
+                                <option value="Australia/Perth">（UTC+08:00）パース</option>
+                                <option value="Asia/Irkutsk">（UTC+08:00）イルクーツク</option>
+                                <option value="Asia/Singapore">（UTC+08:00）クアラルンプール、シンガポール</option>
+                                <option value="Asia/Yakutsk">（UTC+09:00）ヤクーツク</option>
+                                <option value="Asia/Seoul">（UTC+09:00）ソウル</option>
+                                <option value="Asia/Tokyo" selected>（UTC+09:00）大阪、札幌、東京</option>
+                                <option value="Australia/Adelaide">（UTC+09:30）アデレード</option>
+                                <option value="Australia/Darwin">（UTC+09:30）ダーウィン</option>
+                                <option value="Asia/Vladivostok">（UTC+10:00）ウラジオストク</option>
+                                <option value="Australia/Hobart">（UTC+10:00）ホバート</option>
+                                <option value="Pacific/Port_Moresby">（UTC+10:00）グアム、ポートモレスビー</option>
+                                <option value="Australia/Sydney">（UTC+10:00）キャンベラ、メルボルン、シドニー</option>
+                                <option value="Australia/Brisbane">（UTC+10:00）ブリスベン</option>
+                                <option value="Asia/Magadan">（UTC+11:00）マガダン</option>
+                                <option value="Pacific/Guadalcanal">（UTC+11:00）ソロモン諸島、ニューカレドニア</option>
+                                <option value="Pacific/Fiji">（UTC+12:00）フィジー、マーシャル諸島</option>
+                                <option value="Etc/GMT-12">（UTC+12:00）協定世界時+12</option>
+                                <option value="Pacific/Auckland">（UTC+12:00）オークランド、ウェリントン</option>
+                                <option value="Pacific/Tongatapu">（UTC+13:00）ヌクアロファ</option>
+                                <option value="Pacific/Apia">（UTC+13:00）サモア</option>
+                            </select>
+                        </div>
+                    </div> -->
+                </div>
+                <div id="add_user_page" style="display: none;">
+                    <div id="input_user_name">
+                        <span>ユーザー名</span><span style="color: red">*</span><br>
+                        <div class="kintoneplugin-input-outer">
+                            <input class="kintoneplugin-input-text" id="user_name">
+                        </div>
+                    </div>
+                    <div id="input_login_id">
+                        <span>ログインID</span><span style="color: red">*</span><br>
+                        <div class="kintoneplugin-input-outer">
+                            <input class="kintoneplugin-input-text" id="login_id">
+                        </div>
+                    </div>
+                    <div id="input_login_password">
+                        <span>パスワード</span><span style="color: red">*</span><br>
+                        <div class="kintoneplugin-input-outer">
+                            <input class="kintoneplugin-input-text" id="login_password">
+                        </div>
+                    </div>
+                    <div id="input_login_mail">
+                        <span>メールアドレス</span><br>
+                        <div class="kintoneplugin-input-outer">
+                            <input type="email" class="kintoneplugin-input-text" id="login_mail">
+                        </div>
+                    </div>
+                    <div id="input_login_authority">
+                        <span></span><br>
+                        <div class="kintoneplugin-input-checkbox">
+                            <span class="kintoneplugin-input-checkbox-item">
+                                <input type="checkbox" name="authority" value="2" id="authority-2">
+                                <label for="authority-2">マップの設定を可能にする</label>
+                            </span>
+                        </div>
+                    </div>
+                    <button class="kintoneplugin-button-dialog-ok" id="post_user">追加</button>
+                    <button class="kintoneplugin-button-dialog-cancel" id="cancel_add_user">キャンセル</button>
+                </div>
+            </div>
+            <!-- マップの設定一覧 -->
+            <div id="configs" style="display: none;">
+                <div id="configuration_type" style="display: none;">
+                    <button class="add-config" title="設定を増やす">+</button>
+                    <div class="show-mapconfigs">
+                        <div class="map-configs" id="first_config">
+                            <input type="checkbox" name="valid-map" id="valid0">
+                            <label for="valid0" class="valid-label">表示</label>
+                            <div style="max-width: 50%"><span class="config-name">設定</span></div>
+                            <button class="map">マップ設定</button>
+                            <button class="narrow-down">絞り込み</button>
+                            <button class="users">ユーザー設定</button>
+                            <a class="check-open-map" style="display: none;">公開マップの確認</a>
+                            <button class="remove-config">×</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- マップの設定 -->
+                <div class="map-config" style="display: none;">
+                    <div class="block">
+                        <div>
+                            <span>設定名</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <div class="kintoneplugin-input-outer">
+                            <input type="text" class="kintoneplugin-input-text" id="config_name" value="設定">
+                        </div>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>公開用URL</span>
+                        </div>
+                        <div class="kintoneplugin-input-outer">
+                            <a id="open_url"></a><br>
+                            <input type="text" class="kintoneplugin-input-text" id="open_url_name"
+                                placeholder="英数字で入力してください。">
+                            <div><button id="create_Random_url">ランダムに生成する</button></div>
+                        </div>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>適用するアプリID</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <div class="kintoneplugin-input-outer">
+                            <input type="number" class="kintoneplugin-input-text" id="appId">
+                        </div>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>APIトークン</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <div class="kintoneplugin-input-outer">
+                            <input type="text" class="kintoneplugin-input-text" id="token">
+                        </div>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>マップの中心となる緯度</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <div class="kintoneplugin-input-outer">
+                            <input type="text" class="kintoneplugin-input-text" id="center_lat">
+                        </div>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>マップの中心となる経度</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <div class="kintoneplugin-input-outer">
+                            <input type="text" class="kintoneplugin-input-text" id="center_lng">
+                        </div>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>マップピンの形</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <select id="marker" class="map-config-selects">
+                            <option value="pin" selected>ピン</option>
+                            <option value="circle">円</option>
+                        </select>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>緯度</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <select id="lat" class="map-config-selects">
+                            <option value="">-----</option>
+                        </select>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>経度</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <select id="lng" class="map-config-selects">
+                            <option value="">-----</option>
+                        </select>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>ピンの名前</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <select id="name" class="map-config-selects">
+                            <option value="">-----</option>
+                        </select>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>絞り込みに使用するフィールド</span>
+                        </div>
+                        <select id="group" class="map-config-selects">
+                            <option value="">-----</option>
+                        </select>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>ピンの色、アイコン変更に使用するフィールド</span>
+                        </div>
+                        <select id="color" class="map-config-selects">
+                            <option value="">-----</option>
+                        </select>
+                        <div id="color_teble"></div>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>ポップアップに表示するフィールド</span>
+                        </div>
+                        <div class="popup_configs" id="first_popup">
+                            <select id="popup" class="map-config-selects">
+                                <option value="">-----</option>
+                            </select>
+                            <div class="kintoneplugin-table-td-operation">
+                                <button type="button" class="kintoneplugin-button-add-row-image add"
+                                    title="Add row"></button>
+                                <button type="button" class="kintoneplugin-button-remove-row-image remove"
+                                    title="Delete this row"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="block" id="add_images_config">
+                        <div>
+                            <span>画像でピンを登録する場合</span>
+                            <span class="required-field"></span>
+                        </div>
+                        <div class="kintoneplugin-input-radio" style="margin-top: 10px;">
+                            <span class="kintoneplugin-input-radio-item">
+                                <input type="radio" name="check-registration" value="0" id="check_registration_0"
+                                    checked="">
+                                <label for="check_registration_0">緯度・経度のみ登録</label>
+                            </span>
+                            <span class="kintoneplugin-input-radio-item">
+                                <input type="radio" name="check-registration" value="1" id="check_registration_1">
+                                <label for="check_registration_1">緯度・経度と画像を登録</label>
+                            </span>
+                        </div>
+                        <div class="image-field-config">
+                            <span style="font-size: 15px;">画像を保存するフィールド</span>
+                            <span class="required-field">*</span>
+                            <div>
+                                <select id="image_field" class="map-config-selects">
+                                    <option value="">-----</option>
+                                </select>
+                            </div>
+                            <div class="kintoneplugin-input-radio" style="margin-top: 10px;">
+                                <span class="kintoneplugin-input-radio-item">
+                                    <input type="radio" name="check-registration-image-type" value="0"
+                                        id="check_registration_image_type_0" checked="">
+                                    <label for="check_registration_image_type_0">緯度・経度がある画像のみ登録</label>
+                                </span>
+                                <span class="kintoneplugin-input-radio-item">
+                                    <input type="radio" name="check-registration-image-type" value="1"
+                                        id="check_registration_image_type_1">
+                                    <label for="check_registration_image_type_1">緯度・経度がない画像もすべて登録</label>
+                                </span>
+                            </div>
+                            <div class="" style="display: flex; align-items: center; margin-top: 5px;">
+                                <div class="kintoneplugin-input-checkbox">
+                                    <span class="kintoneplugin-input-checkbox-item">
+                                        <input type="checkbox" name="registration-datetime" value="0"
+                                            id="registration_datetime" checked="">
+                                        <label for="registration_datetime">撮影日時を登録</label>
+                                    </span>
+                                </div>
+                                <select id="image_datetime_field" class="map-config-selects">
+                                    <option value="">-----</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="block">
+                        <div>
+                            <span>最初に表示する地図の種類</span>
+                            <span class="required-field">*</span>
+                        </div>
+                        <select id="map_tile" class="map-config-selects">
+                            <option value="OpenStreetMap" selected>OpenStreetMap</option>
+                            <option value="GRUS画像">国土地理院 GRUS画像</option>
+                            <option value="電子地形図">国土地理院 電子地形図</option>
+                            <option value="淡色地図">国土地理院 電子地形図 淡色地図</option>
+                        </select>
+                    </div>
+                    <button class="kintoneplugin-button-dialog-ok" id="save-config">保存</button>
+                    <button class="kintoneplugin-button-dialog-cancel" id="back-config">キャンセル</button>
+                </div>
+                <!-- マップのユーザー設定 -->
+                <div id="map_show_users" style="display: none;">
+                    <div style="margin-bottom: 10px;">
+                        <span id="map_name"></span>
+                    </div>
+                    <table class="kintoneplugin-table">
+                        <thead>
+                            <tr>
+                                <th class="kintoneplugin-table-th"><span class="title">ユーザー名</span></th>
+                                <th class="kintoneplugin-table-th"><span class="title">権限</span></th>
+                                <th class="kintoneplugin-table-th-blankspace"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="show_map_users">
+                            <tr>
+                                <td>
+                                    <!-- ユーザーを選択する -->
+                                    <div class="kintoneplugin-table-td-control">
+                                        <div class="kintoneplugin-table-td-control-value">
+                                            <select class="login-user-id map-config-selects">
+                                                <option value="">-----</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <!-- ユーザーに権限を付与する -->
+                                    <div class="kintoneplugin-table-td-control">
+                                        <div class="kintoneplugin-table-td-control-value">
+                                            <div class="kintoneplugin-input-checkbox">
+                                                <span class="kintoneplugin-input-checkbox-item">
+                                                    <input type="checkbox" name="show-map-authority" value="0"
+                                                        id="show_map_authority-0">
+                                                    <label for="show_map_authority-0">ピンの編集</label>
+                                                </span>
+                                            </div>
+                                            <div class="kintoneplugin-input-checkbox">
+                                                <span class="kintoneplugin-input-checkbox-item">
+                                                    <input type="checkbox" name="show-map-authority" value="1"
+                                                        id="show_map_authority-1">
+                                                    <label for="show_map_authority-1">ピンの登録</label>
+                                                </span>
+                                            </div>
+                                            <div class="kintoneplugin-input-checkbox">
+                                                <span class="kintoneplugin-input-checkbox-item">
+                                                    <input type="checkbox" name="show-map-authority" value="2"
+                                                        id="show_map_authority-2">
+                                                    <label for="show_map_authority-2">マップの設定</label>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="kintoneplugin-table-td-operation">
+                                    <button type="button" class="kintoneplugin-button-add-row-image add"
+                                        title="Add row"></button>
+                                    <button type="button" class="kintoneplugin-button-remove-row-image remove"
+                                        title="Delete this row"></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <!-- adminを表示する -->
+                                    <div class="kintoneplugin-table-td-control">
+                                        <div class="kintoneplugin-table-td-control-value">
+                                            <span id="authority0_user_name"></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <!-- 権限を表示(編集不可) -->
+                                    <div class="kintoneplugin-table-td-control">
+                                        <div class="kintoneplugin-table-td-control-value">
+                                            <div class="kintoneplugin-input-checkbox">
+                                                <span class="kintoneplugin-input-checkbox-item">
+                                                    <input type="checkbox" name="show-map-authority" value="0"
+                                                        id="show_map_authority-0" checked="" disabled>
+                                                    <label for="show_map_authority-0">ピンの編集</label>
+                                                </span>
+                                            </div>
+                                            <div class="kintoneplugin-input-checkbox">
+                                                <span class="kintoneplugin-input-checkbox-item">
+                                                    <input type="checkbox" name="show-map-authority" value="1"
+                                                        id="show_map_authority-1" checked="" disabled>
+                                                    <label for="show_map_authority-1">ピンの登録</label>
+                                                </span>
+                                            </div>
+                                            <div class="kintoneplugin-input-checkbox">
+                                                <span class="kintoneplugin-input-checkbox-item">
+                                                    <input type="checkbox" name="show-map-authority" value="2"
+                                                        id="show_map_authority-2" checked="" disabled>
+                                                    <label for="show_map_authority-2">マップの設定</label>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="show_users_buttons">
+                        <button class="kintoneplugin-button-dialog-ok" id="show_users_save">保存</button>
+                        <button class="kintoneplugin-button-dialog-cancel" id="show_users_calsel">キャンセル</button>
+                    </div>
+                </div>
+                <!-- レコードの絞り込み -->
+                <div id="map_narrow_down" style="display: none;">
+                    <div style="margin-bottom: 10px;">
+                        <span id="map_name"></span>
+                    </div>
+                    <div class="narrow-down-radio" style="display: none;">
+                        <div class="kintoneplugin-input-radio">
+                            <span class="kintoneplugin-input-radio-item">
+                                <input type="radio" id="and" name="andor" value="and" checked>
+                                <label for="and">すべての条件を満たす</label>
+                            </span>
+                            <span class="kintoneplugin-input-radio-item">
+                                <input type="radio" id="or" name="andor" value="or">
+                                <label for="or">いずれかの条件を満たす</label>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="narrow-down-configs first-config">
+                        <select class="narrow-down-field map-config-selects"> <!-- 絞り込みの条件フィールド -->
+                            <option value="">-----</option>
+                        </select>
+                        <div class="narrow-down-conditions"></div> <!-- 絞り込みの条件 -->
+                        <div class="narrow-down-values"></div> <!-- 絞り込みの条件値 -->
+                        <div class="kintoneplugin-table-td-operation">
+                            <button type="button" class="kintoneplugin-button-add-row-image condition-add"
+                                title="条件を増やす"></button>
+                            <button type="button" class="kintoneplugin-button-remove-row-image condition-remove"
+                                title="条件を減らす"></button>
+                        </div>
+                    </div>
+                    <button id="narrow_down_clear">条件をクリア</button>
+                    <div id="narrow-down-config-buttons">
+                        <button class="kintoneplugin-button-dialog-ok" id="narrow_down_save">保存</button>
+                        <button class="kintoneplugin-button-dialog-cancel" id="narrow_down_calsel">キャンセル</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
