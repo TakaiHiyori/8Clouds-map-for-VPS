@@ -28,3 +28,5 @@ DELETE FROM users WHERE id != 1;
 
 SELECT users.* FROM users AS users JOIN domain ON users.domain = domain.id
       WHERE domain.domain_text = '8CloudsMap' AND users.user_id = 'takai-h1' AND users.password = md5('takaiPass');
+
+ALTER TABLE users RENAME TO benri_map_users;

@@ -35,6 +35,7 @@ app.post('/kintone/getRecords', async (c) => {
     }
     const cursor = await getCursor.json();
 
+    //残りのレコードの総数を数える
     const getTotalCursor = await fetch(postUrl, {
       method: 'POST',
       headers: {

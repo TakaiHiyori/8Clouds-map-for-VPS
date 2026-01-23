@@ -1,0 +1,56 @@
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+}
+
+#map {
+  height: calc(99% - 35px);
+  width: 100%;
+  /* display: flex; */
+}
+
+/* ==============ヘッダー=============== */
+#map_header {
+  background-color: white;
+  display: flex;
+  margin-bottom: 10px;
+  gap: 20px;
+  z-index: 1100;
+  height: 42px;
+  width: 100%;
+  padding: 5px 10px;
+  align-items: anchor-center;
+}
+
+div#login_url {
+  margin-left: auto;
+}
+
+div#logout-config {
+  position: absolute;
+  z-index: 1000;
+  margin-left: auto;
+  margin-right: 11px;
+}
+
+/* ==============メニュー=============== */
+div#menu {
+  position: fixed;
+  margin-left: 10px;
+  gap: 7px;
+  display: inline-flex;
+  height: 4%;
+  min-height: 34px;
+  z-index: 990;
+  max-width: 75%;
+}
+
+.select-options {
+  padding: 5px;
+  position: absolute;
+  margin-top: 3px;
+}

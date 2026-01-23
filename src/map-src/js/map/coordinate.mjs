@@ -1,7 +1,5 @@
 import { showOtherLayersMakers } from "./createOtherLayer.mjs";
 
-// import '../index,js'
-// import { showOtherLayersMakers } from '../index.js';
 /**
  * 現在地を取得
  * @param {object} mapConfig マップの設定

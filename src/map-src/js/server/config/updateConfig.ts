@@ -11,8 +11,8 @@ app.post('/updateConfig', async (c) => {
     console.log('updateConfig実行:', body);
 
     await pool.query(
-      `UPDATE configs SET valid = $1`,
-      [body.valid]
+      `UPDATE benri_map.benri_map_configs SET valid = $1 WHERE id = $2`,
+      [body.valid, body.config]
     )
 
     return c.json({

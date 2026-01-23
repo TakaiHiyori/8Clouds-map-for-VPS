@@ -12,7 +12,7 @@ app.post('/getPublicConfig', async (c) => {
 
     // ドメインを取得
     const getDomain = await pool.query(
-      `SELECT * FROM domain WHERE open_domain_text = $1`,
+      `SELECT * FROM benri_map.benri_map_domain WHERE open_domain_text = $1`,
       [body.domain]
     )
 
@@ -24,7 +24,7 @@ app.post('/getPublicConfig', async (c) => {
 
     // オプションを取得
     const getOptions = await pool.query(
-      `SELECT * FROM options WHERE domain = $1`,
+      `SELECT * FROM benri_map.benri_map_options WHERE domain = $1`,
       [getDomain.rows[0].id]
     )
 
@@ -34,7 +34,7 @@ app.post('/getPublicConfig', async (c) => {
 
     // 設定を取得
     const getConfigs = await pool.query(
-      `SELECT * FROM configs WHERE domain = $1 AND open_url = $2 ORDER BY id desc`,
+      `SELECT * FROM benri_map.benri_map_configs WHERE domain = $1 AND open_url = $2 ORDER BY id desc`,
       [getDomain.rows[0].id, body.openURL]
     );
 
@@ -70,7 +70,7 @@ app.post('/getPublicConfig', async (c) => {
 
       // 色の設定を取得
       const getColors = await pool.query(
-        `SELECT * FROM colors WHERE config = $1`,
+        `SELECT * FROM benri_map.benri_map_colors WHERE config = $1`,
         [getConfig.id]
       )
 
@@ -87,7 +87,7 @@ app.post('/getPublicConfig', async (c) => {
 
       // ポップアップの設定を取得
       const getPopups = await pool.query(
-        `SELECT * FROM popups WHERE config = $1`,
+        `SELECT * FROM benri_map.benri_map_popups WHERE config = $1`,
         [getConfig.id]
       )
 
@@ -101,7 +101,7 @@ app.post('/getPublicConfig', async (c) => {
       }
 
       const getNarrows = await pool.query(
-        `SELECT * FROM narrowDown WHERE config = $1`,
+        `SELECT * FROM benri_map.benri_map_configs WHERE config = $1`,
         [getConfig.id]
       )
 
@@ -117,7 +117,7 @@ app.post('/getPublicConfig', async (c) => {
       }
 
       const showUsers = await pool.query(
-        `SELECT * FROM mapShowUsers WHERE config = $1`,
+        `SELECT * FROM benri_map.benri_map_show_users WHERE config = $1`,
         [getConfig.id]
       )
 

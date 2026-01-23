@@ -17,3 +17,6 @@ ALTER TABLE options ALTER COLUMN "option" TYPE VARCHAR(50);
 
 INSERT INTO options ("domain", "option", valid) VALUES (1, 'drawMap', true);
 
+INSERT INTO benri_map_options ("domain", "option", valid) VALUES (1, 'addShapeFile', true);
+
+ALTER TABLE options RENAME TO benri_map_options;

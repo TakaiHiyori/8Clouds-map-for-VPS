@@ -1,12 +1,13 @@
 
 import { escapeHtml } from '../escapeHtml.mjs'
-// import { escapeHtml } from '../index';
+import $ from "jquery"
 
 export async function createSearchArea(field) {
     if ($('#search_modal').length === 0) {
         const modal = `<div id="search_modal" style="display: block">
                             <div id="search_modal_header">
                                 <div id="record_search_name">絞り込み</div>
+                                <div id="search_text" style="display: none">絞り込み適応中</div>
                                 <button id="close">×</button>
                             </div>
                             <div id="search_modal_body">
@@ -382,6 +383,12 @@ export async function markerSearch(markers, recordsResp, map, layerHideMarkers) 
             recordIds: []
         }
         if (field === '') {
+            if (conditionNum > 2) {
+                $('.conditions:eq(' + i + ')').remove()
+            } else {
+                $('.conditions:eq(' + i + ') .andor').hide()
+                $('.conditions:eq(' + i + ') .condition_delete').hide()
+            }
             conditionNum--;
             i--;
             continue;
@@ -504,9 +511,11 @@ export async function markerSearch(markers, recordsResp, map, layerHideMarkers) 
         })
     }
 
-    if (conditionNum === 0) {
-        return;
+    if (conditionNum === 1) {
+        $('#search_text').hide()
+        return [];
     } else {
+        $('#search_text').show()
         let matchRecords = []
         for (const key in condition) {
             if (matchRecords.length === 0) {

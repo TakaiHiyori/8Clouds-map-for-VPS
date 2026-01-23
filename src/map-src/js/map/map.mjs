@@ -7,6 +7,21 @@
  * 修正内容
  * 　位置情報を取得
  */
+/**
+ * 修正日：2025/11/07～2025/11/18
+ * 追加機能
+ *  絞り込み機能の追加
+ */
+/**
+ * 修正日：2025/11/28～
+ * 追加機能
+ *  画像から緯度経度を取得してkintoneに登録
+ */
+/**
+ * 修正日：2025/12/4～
+ * 修正内容
+ *  VPSでマップを動くようにする
+ */
 
 import '../../css/51-modern-default.css'
 import '../../css/loading.css'
@@ -14,20 +29,20 @@ import '../../css/style.css'
 import '../../css/multiple-select-style.css';
 import './index.js'
 
-// import { field, data } from '../kintoneAPI.mjs'
+import $ from "jquery"
+// import { Button, ButtonGroup } from "@chakra-ui/react"
+
 import { createRecordModal, createMarker, createImageModal } from './createMarker.mjs'
 import { createSearchArea, addressSearch, markerSearch } from './searchRecord.mjs'
 import { createOtherMapModal } from './createOtherLayer.mjs';
 import { marker } from './marker.mjs';
 import { getBoundingBox, getCurrentPosition, getMapViewDistanceKm, updateMarkersByCenter } from './coordinate.mjs';
 import { postImageRecords, showGetFileModal } from './getFiles.mjs';
+import { createDetailModal } from './createDetailModal.ts'
 import { createQuery } from './createQuery.ts';
 import { clickDrawLine, clickDrawCircle, clickDrawArea } from './drawOnMap.ts'
 import * as turf from '@turf/turf';
 import { getSHPFile } from './getSHP.js';
-// import { getJSON } from 'jquery';
-
-// import { field, data, createRecordModal, createMarker, createImageModal, createSearchArea, addressSearch, markerSearch, createOtherMapModal, marker, getBoundingBox, getCurrentPosition, getMapViewDistanceKm, updateMarkersByCenter, postImageRecords, showGetFileModal } from './index.js'
 
 /** @type {boolean} ログインしているか確認する */
 let login = false
@@ -96,6 +111,7 @@ export const localStorageKey = `map_${domainText}`
 /** @type {object} ログイン情報 */
 const checkLogin = localStorage.getItem(localStorageKey);
 
+console.log(JSON.parse(checkLogin))
 let showMapInformation = {};
 
 if (checkLogin && domainText.indexOf('Public') === -1) {
@@ -114,7 +130,7 @@ if (checkLogin && domainText.indexOf('Public') === -1) {
             $('#config_button').hide()
             $('#logout-config hr').hide();
         }
-        $('#new_record').css('display', 'block');
+        // $('#new_record').css('display', 'block');
         login = true;
         if ((/iPhone|Android.+Mobile|macintosh/).test(navigator.userAgent) || "ontouchend" in document) {
             $('#config_button').hide();
@@ -153,17 +169,16 @@ if (checkLogin && domainText.indexOf('Public') === -1) {
 const showMapLocalStorageKey = `show_map_${domainText}_${JSON.parse(checkLogin)?.id}`
 
 const getConfig = async () => {
-
     if (login) {
         const configResp = await window.fetch("../getConfig", {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ domain: domainText })
+            body: JSON.stringify({ domain: domainText, user: JSON.parse(checkLogin).id })
         });
         return await configResp.json()
-    } else {
+    } else if (!login && openURL !== '') {
         const configResp = await window.fetch("../getPublicConfig", {
             method: 'POST',
             headers: {
@@ -189,9 +204,9 @@ console.log(config)
 const domain = config.domain
 
 //オプションによって表示するボタンを変更する
-if (config.addImage) {
-    $('#input_image_button').show()
-}
+// if (config.addImage) {
+//     $('#input_image_button').show()
+// }
 if (config.drawMap) {
     $('#drawing').show()
 }
@@ -230,6 +245,9 @@ async function showMap(showMap) {
         const mapConfig = config[showMap];
         console.log(mapConfig)
 
+        const userShowMap = JSON.parse(checkLogin).showMaps.filter(map => map.config === mapConfig.id);
+        console.log(userShowMap);
+
         let recordsResp = []
 
         /**
@@ -241,7 +259,9 @@ async function showMap(showMap) {
             if (newRecord) {
                 //レコードと登録を行うとき
                 newRecord = false;
-                document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'progress';
+                // document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'progress';
+                $('#map').css('cursor', 'progress')
+
                 if ((/iPhone|Android.+Mobile|ipad|iPad|macintosh/).test(navigator.userAgent) || "ontouchend" in document) {
                     $('.loading-content').attr('class', 'loading-content').css('background-color', '#ffffff6c')
                 }
@@ -250,7 +270,9 @@ async function showMap(showMap) {
                 newRecord = true
                 $('.loading-content').attr('class', 'loading-content loaded')
 
-                document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'url(../pin.png) 1 15, auto';
+                // document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'url(../pin.png) 1 15, auto';
+                $('#map').css('cursor', 'url(../pin.png) 1 15, auto')
+
                 $('#cancel').off('click').click(() => {
                     //キャンセルがクリックされたとき、モーダルを消す
                     $('#glay_out').remove();
@@ -264,8 +286,41 @@ async function showMap(showMap) {
             } else if (drawing) {
                 //描画がonになっているとき
                 if (drawLine) {
-                    //線の描画を行うとき
                     const objectDrawLineLatLng = Object.keys(drawLineLatLng)
+                    //線の描画を行うとき
+                    // let lineDragg = false;
+                    // map.on('mousedown', () => {
+                    //     if (!drawLine) {
+                    //         return;
+                    //     }
+                    //     lineDragg = true;
+                    //     drawLineLatLng['line1'] = {
+                    //         color: '',
+                    //         latlng: [[e.latlng.lat, e.latlng.lng]]
+                    //     };
+                    //     lineStart = L.circle([e.latlng.lat, e.latlng.lng], {
+                    //         color: $('.draw-line-color').val(),       // 線の色
+                    //         radius: 1        // 半径
+                    //     }).addTo(map);
+                    // })
+
+                    // $('#map').on('mouseup mouseleave', () => {
+                    //     if (!drawLine) {
+                    //         return;
+                    //     }
+                    //     map.removeLayer(lineStart)
+                    //     lineDragg = false;
+                    // })
+
+                    // $('#map').on('mousemove', () => {
+                    //     if (lineDragg) {
+                    //         if (!drawLine) {
+                    //             lineDragg = false;
+                    //             return;
+                    //         }
+                    //     }
+                    // })
+                    // $('#map').on('')
                     if (!lineStart && objectDrawLineLatLng.length === 0) {
                         drawLineLatLng['line1'] = {
                             color: '',
@@ -299,7 +354,7 @@ async function showMap(showMap) {
                             const point2 = L.latLng(drawLineLatLng[key].latlng[1][0], drawLineLatLng[key].latlng[1][1]);
                             const distance = point1.distanceTo(point2)
                             drawLineLatLng[key].distance = Math.round(distance * 100) / 100
-                            drawLineLatLng[key].polyline = polyline.bindPopup(drawLineLatLng[key].distance + 'm')
+                            drawLineLatLng[key].polyline = polyline.bindPopup('<div class="draw-shape">' + drawLineLatLng[key].distance + 'm</div>')
                             allDraws.push(drawLineLatLng[key].polyline)
                             polyline.on('click', onMarkerClick)
                             //地図のズーム調整
@@ -328,7 +383,7 @@ async function showMap(showMap) {
                             markerNum++;
                         }
                     })
-                    circle.bindPopup(`<div>面積：<br>${circleArea + circleAreaUnit}</div><br><div>円内のピンの数<br>${markerNum}</div>`)
+                    circle.bindPopup(`<div class="draw-shape"><div>面積：<br>${circleArea + circleAreaUnit}</div><br><div>円内のピンの数<br>${markerNum}</div></div>`)
                     circle.on('click', onMarkerClick)
                     allDraws.push(circle)
 
@@ -395,7 +450,7 @@ async function showMap(showMap) {
                             })
 
                             // ポップアップに面積を表示
-                            const popupText = `<div>面積:<br>${areaM2.toFixed(2)} ㎡<br>${areaKm2.toFixed(6)} k㎡</div><br><div>エリア内のピンの数:<br>${markerNum}</div>`;
+                            const popupText = `<div class="draw-shape"><div>面積:<br>${areaM2.toFixed(2)} ㎡<br>${areaKm2.toFixed(6)} k㎡</div><br><div>エリア内のピンの数:<br>${markerNum}</div></div>`;
                             polygon.bindPopup(popupText);
 
                             drawAreaLatLng[objectDrawAreaLatLng[objectDrawAreaLatLng.length - 1]].polygon = polygon
@@ -471,7 +526,8 @@ async function showMap(showMap) {
                     (${mapConfig.latitude} > ${latLngBox.minLat} and ${mapConfig.latitude} < ${latLngBox.maxLat} and
                      ${mapConfig.longitude} > ${latLngBox.minLng} and ${mapConfig.longitude} < ${latLngBox.maxLng})`
 
-        query += createQuery(mapConfig, field)
+        query += createQuery(mapConfig, field);
+        console.log(query)
 
         //レコードとフィールド情報を取得
         let recordsResps = await window.fetch("../kintone/getRecords", {
@@ -570,14 +626,22 @@ async function showMap(showMap) {
             }
         })
 
-        if (authority.create === 0) {
-            //作成権限がないとき
+        if (!userShowMap[0].create) {
             $('#new_record').hide()
             $('#input_image_button').hide()
-            if (!(/iPhone|Android.+Mobile|ipad|iPad|macintosh/).test(navigator.userAgent) || !("ontouchend" in document)) {
-                const menuWidth = Number($('#menu').css('width').replace('px', ''))
-                $('.leaflet-control-layers.leaflet-control').css('margin-left', menuWidth + 10 + 'px');
+            $('#add_shapefile').hide()
+        } else {
+            $('#new_record').show()
+            if (config.addImage) {
+                $('#input_image_button').show()
             }
+            if (config.addShapeFile) {
+                $('#add_shapefile').show()
+            }
+        }
+        if (!(/iPhone|Android.+Mobile|ipad|iPad|macintosh/).test(navigator.userAgent) || !("ontouchend" in document)) {
+            const menuWidth = Number($('#menu').css('width').replace('px', ''))
+            $('.leaflet-control-layers.leaflet-control').css('margin-left', menuWidth + 10 + 'px');
         }
 
         /**=====================================現在地の周辺以外のレコードを取得===================================================== */
@@ -682,11 +746,15 @@ async function showMap(showMap) {
             if (newRecord) {
                 //newRecordがtrueになったとき、色を変える
                 $('#new_record').css({ 'background': '#bdbdbd' });
-                document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'url(../pin.png) 1 15, auto';
+                // document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'url(../pin.png) 1 15, auto';
+                $('#map').css('cursor', 'url(../pin.png) 1 15, auto')
+
             } else {
                 //newRecordがfakseになったとき、色を変える
                 $('#new_record').css('background', '#ededed');
-                document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'grab';
+                // document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'grab';
+                $('#map').css('cursor', 'grab')
+
             }
         })
 
@@ -710,8 +778,22 @@ async function showMap(showMap) {
                 $('#search_modal').hide()
             });
 
-            //全件表示が押されてたとき
+            //絞り込み解除が押されてたとき
             $('#show_all').off('click').click(async () => {
+                let conditionNum = $('.conditions').length;
+                $('#search_text').hide()
+
+                for (let i = 1; i < conditionNum; i++) {
+                    $('.conditions:eq(' + i + ') .search_field_select').val('')
+                    if (conditionNum > 2) {
+                        $('.conditions:eq(' + i + ')').remove()
+                    } else {
+                        $('.conditions:eq(' + i + ') .andor').hide()
+                        $('.conditions:eq(' + i + ') .condition_delete').hide()
+                    }
+                    conditionNum--;
+                    i--;
+                }
                 searchMarkers = [];
                 Object.keys(allMarker).forEach(key => {
                     if (leafletLayerHideMarkers.indexOf(key) === -1) {
@@ -726,7 +808,8 @@ async function showMap(showMap) {
                     $('.marker-label').css('display', 'block');
                 }
 
-                hideMarkers = searchMarkers.concat(leafletLayerHideMarkers)
+                hideMarkers = searchMarkers.concat(leafletLayerHideMarkers);
+                // $('#search_modal').hide()
             })
 
             //×ボタンが押されたとき、非表示にする
@@ -768,7 +851,9 @@ async function showMap(showMap) {
             //画像で登録ボタンを押したとき
             newRecord = false
             $('#new_record').css('background', '#ededed');
-            document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'grab';
+            // document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'grab';
+            $('#map').css('cursor', 'grab')
+
             $('#input_image').click();
         })
         $('#input_image').on("cancel", () => { });
@@ -804,6 +889,7 @@ async function showMap(showMap) {
                     console.error(error)
                 }
             })
+            $('#input_image').val('')
         })
 
         $('#drawing').off('click').click(function () {
@@ -815,7 +901,9 @@ async function showMap(showMap) {
             newRecord = false;
             //newRecordがfakseになったとき、色を変える
             $('#new_record').css('background', '#ededed');
-            document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'grab';
+            // document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'grab';
+            $('#map').css('cursor', 'grab')
+
 
             if (drawing) {
                 drawing = false;
@@ -845,6 +933,11 @@ async function showMap(showMap) {
                     $('#draw_circle').css('background', '#ededed');
                     $('#draw_area').css('background', '#ededed');
                     drawLine = clickDrawLine(drawLine);
+                    // if (drawLine) {
+                    //     map.dragging.disable();
+                    // } else {
+                    //     map.dragging.enable();
+                    // }
                 })
 
                 $('#draw_circle').off('click').click(function () {
@@ -862,9 +955,12 @@ async function showMap(showMap) {
 
                     drawLine = false;
                     drawArea = false;
-                    $('#draw_line').css('background', '#ededed');
-                    $('#draw_area').css('background', '#ededed');
-                    drawCircle = clickDrawCircle(drawCircle)
+                    drawCircle = clickDrawCircle(drawCircle);
+                    // if (drawCircle) {
+                    //     map.dragging.disable();
+                    // } else {
+                    //     map.dragging.enable();
+                    // }
                 })
 
                 $('#draw_area').off('click').click(function () {
@@ -884,7 +980,8 @@ async function showMap(showMap) {
                     drawCircle = false;
                     $('#draw_line').css('background', '#ededed');
                     $('#draw_circle').css('background', '#ededed');
-                    drawArea = clickDrawArea(drawArea)
+                    drawArea = clickDrawArea(drawArea);
+                    map.dragging.enable();
                 })
 
                 $('#draw_back').click(function () {
@@ -952,7 +1049,8 @@ async function showMap(showMap) {
                         areaStart = null;
                     }
 
-                    document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'grab';
+                    // document.getElementsByClassName('leaflet-grab')[0].style.cursor = 'grab';
+                    $('#map').css('cursor', 'grab')
                     $('#menu').show()
                     $('#drawing_menu').hide();
                     drawing = false;
@@ -967,10 +1065,22 @@ async function showMap(showMap) {
                     $('#draw_circle').css({ 'background': '#ededed', 'box-shadow': '1px 1px 0px 0px #818181' });
                     drawArea = false;
                     $('#draw_area').css({ 'background': '#ededed', 'box-shadow': '1px 1px 0px 0px #818181' });
+                    map.dragging.enable();
                     return;
                 })
             }
         })
+
+        // map.on('drag', function (e) {
+        //     if (drawLine) {
+        //         console.log('カーソルドラッグ')
+        //         console.log(e)
+        //         map.dragging.disable();
+        //     } else {
+
+        //     }
+        //     map.dragging.enable();
+        // })
 
         $('#add_shapefile').click(() => {
             $('#select_shapefile').click();
@@ -990,49 +1100,57 @@ async function showMap(showMap) {
             }
         })
 
-        let watchID
-        let GPSLine = [];
-        let afterline;
-        let GPSStart = false;
+        // let watchID
+        // let GPSLine = [];
+        // let afterline;
+        // let GPSStart = false;
 
-        // 位置情報の監視を終了する
-        const clear = () => {
-            afterline = null;
-            GPSLine = [];
-            navigator.geolocation.clearWatch(watchID)
-        }
+        // // 位置情報の監視を終了する
+        // const clear = () => {
+        //     afterline = null;
+        //     GPSLine = [];
+        //     navigator.geolocation.clearWatch(watchID)
+        // }
 
-        $('#GSP_start_stop').off('click').click(async () => {
-            if (GPSStart) {
-                GPSStart = false;
-                $('#GSP_start_stop').text('GPSで経路作成開始');
-                alert('経路の作成を終了します。');
-                clear()
-            } else {
-                GPSStart = true;
-                $('#GSP_start_stop').text('経路作成終了');
-                alert('経路の作成を開始します。');
-                const position = await getCurrentPosition(mapConfig);
-                centerMarker.setLatLng([position.lat, position.lng])
-                watchID = navigator.geolocation.watchPosition(
-                    (nowPosition) => {
-                        console.log(`緯度：${nowPosition.coords.latitude}`, `経度：${nowPosition.coords.longitude}`)
-                        centerMarker.setLatLng([nowPosition.coords.latitude, nowPosition.coords.longitude])
+        // $('#GSP_start_stop').off('click').click(async () => {
+        //     if (GPSStart) {
+        //         GPSStart = false;
+        //         $('#GSP_start_stop').text('GPSで経路作成開始');
+        //         alert('経路の作成を終了します。');
+        //         clear()
+        //     } else {
+        //         GPSStart = true;
+        //         $('#GSP_start_stop').text('経路作成終了');
+        //         alert('経路の作成を開始します。');
+        //         const position = await getCurrentPosition(mapConfig);
+        //         centerMarker.setLatLng([position.lat, position.lng])
+        //         watchID = navigator.geolocation.watchPosition(
+        //             (nowPosition) => {
+        //                 console.log(`緯度：${nowPosition.coords.latitude}`, `経度：${nowPosition.coords.longitude}`)
+        //                 centerMarker.setLatLng([nowPosition.coords.latitude, nowPosition.coords.longitude])
 
-                        GPSLine.push([nowPosition.coords.latitude, nowPosition.coords.longitude])
-                        if (afterline) {
-                            map.removeLayer(afterline);
-                        }
+        //                 GPSLine.push([nowPosition.coords.latitude, nowPosition.coords.longitude])
+        //                 if (afterline) {
+        //                     map.removeLayer(afterline);
+        //                 }
 
-                        if (GPSLine.length > 1) {
-                            afterline = L.polyline(GPSLine).addTo(map);
-                        }
-                    },
-                    (error) => {
-                        // clear()
-                    }
-                )
-            }
+        //                 if (GPSLine.length > 1) {
+        //                     afterline = L.polyline(GPSLine).addTo(map);
+        //                 }
+        //             },
+        //             (error) => {
+        //                 // clear()
+        //             }
+        //         )
+        //     }
+        // })
+
+        map.on('popupopen', function (e) {
+            $('.detail-button').click(function () {
+                const recordId = $(this).prop('id');
+                console.log(recordId);
+                createDetailModal(recordId, recordsResp, domain, mapConfig, field.properties)
+            })
         })
 
     } catch (error) {
@@ -1117,10 +1235,7 @@ if (config.config1 === undefined) {
                             chackAuthority = true
                         }
                         $('#map-types .select-options').append(`<div id="${key}" class="button-selects">${config[key].mapTitle}</div>`);
-                        if (showMapInformation.key === key) {
-                            authority.edit = showMap.edit
-                            authority.create = showMap.create
-                        } else {
+                        if (showMapInformation.key !== key) {
                             otherLayer.push(key)
                         }
                         break;
@@ -1155,11 +1270,6 @@ if (config.config1 === undefined) {
                 $('#mobail_menu #other_maps').hide();
                 $('#mobail_menu #other_maps').next().hide();
                 await showMap(showMapInformation.key);
-
-                // if ((!(/iPhone|Android.+Mobile|macintosh/).test(navigator.userAgent) || !("ontouchend" in document)) && $('.leaflet-control-layers.leaflet-control').length !== 0) {
-                //     const margin = $('.leaflet-control-layers.leaflet-control').css('margin-left').replace('px', '');
-                //     $('.leaflet-control-layers.leaflet-control').css('margin-left', `${Number(margin) - 87}px`);
-                // }
             }
         }
     } else {

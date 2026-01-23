@@ -17,7 +17,7 @@ export const createQuery = (config: any, field: any) => {
         } else if (con === 'unmatch') {
           con = 'not like'
         }
-        addQuery += `${condition.field} ${con} ${condition.value}`
+        addQuery += `${condition.field} ${con} "${condition.value}"`
         break;
 
       case 'NUMBER':

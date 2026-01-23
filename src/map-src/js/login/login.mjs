@@ -5,7 +5,7 @@ import { escapeHtml } from "../escapeHtml.mjs";
 //ドメインのテキストと、表示マップを取得
 let getDomainText = ''
 const parts = location.pathname.split('/');
-
+console.log(parts)
 for (let i = 1; i < parts.length; i++) {
     if (parts[i + 1] === 'login') {
         getDomainText = parts[i]

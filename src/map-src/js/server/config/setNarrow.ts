@@ -10,13 +10,13 @@ app.post('/setNarrow', async (c) => {
     const body = await c.req.json();
     console.log('setNarrow実行:', body);
     await pool.query(
-      `DELETE FROM narrowDown WHERE config = $1`,
+      `DELETE FROM benri_map.benri_map_conditions WHERE config = $1`,
       [body.id]
     )
 
     for (let i = 0; i < body.conditions.length; i++) {
       await pool.query(
-        `INSERT INTO narrowDown (config, field, condition, value, andor) VALUES ($1, $2, $3, $4, $5)`,
+        `INSERT INTO benri_map.benri_map_conditions (config, field, condition, value, andor) VALUES ($1, $2, $3, $4, $5)`,
         [body.id, body.conditions[i].field, body.conditions[i].condition, body.conditions[i].value, body.conditions[i].andor]
       )
     }

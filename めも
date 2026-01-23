@@ -3,6 +3,9 @@ npm run deploy:server
 npm run deploy:server:html
 npm run deploy:server:js
 npm run deploy:server:css
+npm run deploy:server:image
+npm run build:tsx
+npm run deploy:server:tsx
 
 http://133.167.91.11/benri/
 https://solution.8clouds.co.jp/benri/8CloudsMap/
@@ -13,5 +16,7 @@ wrangler login
 cd email-test
 wrangler publish
 
-mp2 start
-mp2 stop
+pm2 start benri-map-test-index
+pm2 stop benri-map-test-index
+pm2 reload benri-map-test-index
+pm2 logs benri-map-test-index

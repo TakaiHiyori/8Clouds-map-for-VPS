@@ -10,12 +10,12 @@ app.post('/setShowMapUsers', async (c) => {
     const body = await c.req.json();
     console.log('setShowMapUsers実行:', body);
     await pool.query(
-      `DELETE FROM mapShowUsers WHERE "user" <> $1 AND config = $2`,
+      `DELETE FROM benri_map.benri_map_show_users WHERE "user" <> $1 AND config = $2`,
       [body.admin, body.config]
     )
     for (let i = 0; i < body.showUsers.length; i++) {
       await pool.query(
-        `INSERT INTO mapShowUsers (config, "user", edit, "create", set_config)
+        `INSERT INTO benri_map.benri_map_show_users (config, "user", edit, "create", set_config)
           VALUES ($1, $2, $3, $4, $5)`,
         [body.config, body.showUsers[i].id, body.showUsers[i].authority.edit, body.showUsers[i].authority.create, body.showUsers[i].authority.setConfig]
       )

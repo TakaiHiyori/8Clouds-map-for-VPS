@@ -62,12 +62,12 @@ if (checkLogin) {
 console.log(JSON.parse(checkLogin))
 
 //設定内容の取得
-const configResp = await window.fetch("../getConfig", {
+const configResp = await window.fetch("../getAllConfig", {
         method: 'POST',
         headers: {
                 "Content-Type": "application/json"
         },
-        body: JSON.stringify({ domain: getDomainText })
+        body: JSON.stringify({ domain: getDomainText, user: JSON.parse(checkLogin).id })
 });
 
 let config = await configResp.json();
@@ -82,7 +82,6 @@ if (config.addImages) {
 }
 
 const getField = async (appId, token) => {
-        console.log('getField')
         const getfieldResp = await window.fetch("../kintone/getField", {
                 method: 'POST',
                 headers: {
@@ -128,7 +127,7 @@ $('#back-config').click(() => {
 
 //設定を保存するときs
 $('#save-config').click(async () => {
-        config[key] = await saveMapConfig(config, key, JSON.parse(checkLogin), users)
+        config[key] = await saveMapConfig(config, key, JSON.parse(checkLogin), users, localStorageKey)
 });
 
 $('#color').change(() => {
@@ -202,6 +201,8 @@ $('#popup').click((e) => {
 $('input[name="check-registration"]').change(function () {
         if ($(this).val() === '0') {
                 $('.image-field-config').hide()
+                $('#image_field_error').hide()
+                $('#image_datetime_error').hide()
         } else {
                 $('.image-field-config').show()
         }
@@ -213,6 +214,7 @@ $('input[name="registration-datetime"]').change(function () {
         } else {
                 $('#image_datetime_field').attr('disabled', true)
                 $('#image_datetime_field').val('')
+                $('#image_datetime_error').hide()
         }
 })
 
@@ -246,14 +248,19 @@ $('.map').click(async (event) => {
 $('#appId').change(async () => {
         const appId = $('#appId').val()
         const token = $('#token').val()
-        if (token !== '') {
-                try {
-                        fieldResp = await getField(appId, token);
-                        showDropdown(fieldResp, key, config);
-                        $('#appId').val(appId)
-                        $('#token').val(token)
-                } catch (error) {
-                        removeOptions()
+        if (appId === '') {
+                $('#app_id_error').show().text('アプリIDが入力されていません。')
+        } else {
+                $('#app_id_error').hide()
+                if (token !== '') {
+                        try {
+                                fieldResp = await getField(appId, token);
+                                showDropdown(fieldResp, key, config);
+                                $('#appId').val(appId)
+                                $('#token').val(token)
+                        } catch (error) {
+                                removeOptions()
+                        }
                 }
         }
 })
@@ -262,16 +269,62 @@ $('#appId').change(async () => {
 $('#token').change(async () => {
         const appId = $('#appId').val()
         const token = $('#token').val()
-        if (appId !== '') {
-                try {
-                        fieldResp = await getField(appId, token)
-                        console.log(fieldResp)
-                        showDropdown(fieldResp, key, config);
-                        $('#appId').val(appId)
-                        $('#token').val(token)
-                } catch (error) {
-                        removeOptions()
+        if (token === '') {
+                $('#token_error').show().text('APIトークンが入力されていません。')
+        } else {
+                $('#token_error').hide()
+                if (appId !== '') {
+                        try {
+                                fieldResp = await getField(appId, token)
+                                console.log(fieldResp)
+                                showDropdown(fieldResp, key, config);
+                                $('#appId').val(appId)
+                                $('#token').val(token)
+                        } catch (error) {
+                                removeOptions()
+                        }
                 }
+        }
+})
+
+//変更されたとき、入力値がないと警告を出す。
+$('#lat').off('change').change(function () {
+        if ($(this).val() === '') {
+                $('#latitude_error').show().text('緯度を設定してください。')
+        } else {
+                $('#latitude_error').hide()
+        }
+})
+
+$('#lng').off('change').change(function () {
+        if ($(this).val() === '') {
+                $('#longitude_error').show().text('経度を設定してください。')
+        } else {
+                $('#longitude_error').hide()
+        }
+})
+
+$('#name').off('change').change(function () {
+        if ($(this).val() === '') {
+                $('#name_error').show().text('ピンの名前を設定してください。')
+        } else {
+                $('#name_error').hide()
+        }
+})
+
+$('#image_field').off('change').change(function () {
+        if ($(this).val() === '') {
+                $('#image_field_error').show().text('画像を保存するフィールドが設定されていません。')
+        } else {
+                $('#image_field_error').hide()
+        }
+})
+
+$('#image_datetime_field').off('change').change(function () {
+        if ($(this).val() === '') {
+                $('#image_datetime_error').show().text('画像を保存するフィールドが設定されていません。')
+        } else {
+                $('#image_datetime_error').hide()
         }
 })
 
@@ -288,11 +341,19 @@ $('#create_Random_url').click(() => {
 })
 
 //2025/08/13追加 文字が変更されたとき
-$('#open_url_name').change((e) => {
-        if (e.target.value === '') {
+$('#open_url_name').change(function (e) {
+        if ($(this).val() === '') {
                 $('#open_url').text('').attr('href', '')
         } else {
-                $('#open_url').text('https://8clouds-plugin.sakura.ne.jp/webMaps/map/8CloudsPablicMap/' + e.target.value).attr({ 'href': 'https://8clouds-plugin.sakura.ne.jp/webMaps/map/8CloudsPablicMap/' + e.target.value, 'target': '_blank' })
+                if (!(/^[a-zA-Z0-9]*$/.test($(this).val().trim()))) {
+                        //英数字のみ
+                        $('#open_url_name_error').show().text('公開用のURLは半角英数字のみにしてください。')
+                } else if ($(this).val().trim().length >= 256) {
+                        $('#open_url_name_error').show().text('公開用のURLは255文字以下にしてください。')
+                } else {
+                        $('#open_url_name_error').hide()
+                        $('#open_url').text('https://8clouds-plugin.sakura.ne.jp/webMaps/map/8CloudsPablicMap/' + e.target.value).attr({ 'href': 'https://8clouds-plugin.sakura.ne.jp/webMaps/map/8CloudsPablicMap/' + e.target.value, 'target': '_blank' })
+                }
         }
 })
 
@@ -328,7 +389,6 @@ $('input[name="valid-map"]').change(async (e) => {
                 headers: {
                         "Content-Type": "application/json"
                 },
-                // credentials: 'same-origin',
                 body: JSON.stringify(body)
         });
 })
@@ -399,7 +459,7 @@ $('.add-config').click(() => {
 
 //設定の削除ボタンをクリックした時、設定を削除する
 $('.remove-config').click(async (e) => {
-        removeConfig(e, config, checkLogin, getDomainText)
+        removeConfig(e, config, JSON.parse(checkLogin), getDomainText)
 });
 
 /*==================================================================================================-ユーザー-=====================================================================================*/
@@ -412,15 +472,88 @@ $('#add_user').click(async () => {
 
         //追加ボタンをクリックする
         $('#post_user').off('click').click(async () => {
-                users.push(await addPostUser(config.domainId, users))
+                const newUser = await addPostUser(config.domainId, users)
+                if (newUser) {
+                        users.push(newUser)
+                }
+                console.log(users)
+
+                $('#login_password').attr('type', 'password');
+                $('#login_password').next().find('i').removeClass('fa-eye-slash');
+                $('#login_password').next().find('i').addClass('fa-eye');
+
+                $('#login_password_confirmation').attr('type', 'password');
+                $('#login_password_confirmation').next().find('i').removeClass('fa-eye-slash');
+                $('#login_password_confirmation').next().find('i').addClass('fa-eye');
         })
 
         //キャンセルボタンをるりっくした時
         $('#cancel_add_user').off('click').click(async () => {
                 $('#show_Registration_information').css('display', 'block');
                 $('#add_user_page').css('display', 'none');
+
+                $('#login_password').attr('type', 'password');
+                $('#login_password').next().find('i').removeClass('fa-eye-slash');
+                $('#login_password').next().find('i').addClass('fa-eye');
+
+                $('#login_password_confirmation').attr('type', 'password');
+                $('#login_password_confirmation').next().find('i').removeClass('fa-eye-slash');
+                $('#login_password_confirmation').next().find('i').addClass('fa-eye');
         })
 });
+
+$('.show_password').off('click').click(function () {
+        const textBox = $(this).prev();
+        if (textBox.prop('type') === 'password') {
+                //input type="password" だった場合は、input type="text" に切り替えます
+                textBox.attr('type', 'text');
+                //ボタンの見栄えを切り替えます。
+                $(this).find('i').removeClass('fa-eye')
+                $(this).find('i').addClass('fa-eye-slash')
+        } else {
+                //そうではなかったら、逆に、input type="password" に切り替えます。
+                textBox.attr('type', 'password');
+                //ボタンの見栄えを切り替えます。
+                $(this).find('i').removeClass('fa-eye-slash')
+                $(this).find('i').addClass('fa-eye')
+        }
+})
+
+$('#user_name').off('change').change(function () {
+        if ($(this).val() !== '') {
+                $('#user_name_error').hide()
+        } else {
+                $('#user_name_error').show().text('ユーザー名が入力されていません');
+        }
+})
+
+$('#login_id').off('change').change(function () {
+        if ($(this).val() !== '') {
+                $('#login_id_error').hide()
+        } else {
+                $('#login_id_error').show().text('ユーザIDが入力されていません');
+        }
+})
+
+$('#login_password').change(function () {
+        if ($(this).val() === '') {
+                $('#password_error1').show().text('パスワードが入力されていません');
+                $('#password_error2').hide()
+        } else {
+                $('#password_error1').hide()
+                if ($(this).val() === $('#login_password_confirmation').val()) {
+                        $('#password_error2').hide()
+                }
+        }
+})
+
+$('#login_password_confirmation').change(function () {
+        if ($(this).val() !== $('#login_password').val()) {
+                $('#password_error2').show().text('パスワードが違います。')
+        } else {
+                $('#password_error2').hide()
+        }
+})
 
 let passChange = false;
 //ユーザーの設定をクリックした時
@@ -539,13 +672,55 @@ $('.users').click(function (e) {
                                 delete config[key]['user_row' + i]
                         }
 
+                        let checkShowLoginUser = false;
                         config[key].users_row_number = newShowUsers.length + 1
+                        const showMaps = JSON.parse(checkLogin).showMaps
                         for (let i = 0; i < newShowUsers.length; i++) {
                                 config[key]['user_row' + (i + 2)] = {
                                         user: newShowUsers[i].id,
                                         edit: newShowUsers[i].authority.edit,
                                         create: newShowUsers[i].authority.create,
                                         setConfig: newShowUsers[i].authority.setConfig
+                                }
+
+                                if (JSON.parse(checkLogin).id === newShowUsers[i].id) {
+                                        check: for (let j = 0; j < showMaps.length; j++) {
+                                                if (showMaps[j].config === config[key].id) {
+                                                        showMaps[j].edit = newShowUsers[i].authority.edit
+                                                        showMaps[j].create = newShowUsers[i].authority.create
+                                                        showMaps[j].setConfig = newShowUsers[i].authority.setConfig
+
+                                                        console.log(showMaps[j])
+                                                        const loginConfig = {
+                                                                id: JSON.parse(checkLogin).id,
+                                                                userId: JSON.parse(checkLogin).userId,
+                                                                userName: JSON.parse(checkLogin).userName,
+                                                                authority: JSON.parse(checkLogin).authority,
+                                                                loginTime: JSON.parse(checkLogin).loginTime,
+                                                                showMaps: showMaps
+                                                        }
+                                                        localStorage.setItem(localStorageKey, JSON.stringify(loginConfig));
+                                                        checkShowLoginUser = true;
+                                                        break check;
+                                                }
+                                        }
+                                }
+                        }
+                        if (!checkShowLoginUser) {
+                                for (let i = 0; i < showMaps.length; i++) {
+                                        if (showMaps[i].config === config[key].id) {
+                                                delete showMaps[i]
+                                                const loginConfig = {
+                                                        id: JSON.parse(checkLogin).id,
+                                                        userId: JSON.parse(checkLogin).userId,
+                                                        userName: JSON.parse(checkLogin).userName,
+                                                        authority: JSON.parse(checkLogin).authority,
+                                                        loginTime: JSON.parse(checkLogin).loginTime,
+                                                        showMaps: showMaps
+                                                }
+                                                localStorage.setItem(localStorageKey, JSON.stringify(loginConfig));
+                                                checkShowLoginUser = true;
+                                        }
                                 }
                         }
                 })

@@ -203,21 +203,36 @@
                 </div>
                 <div id="add_user_page" style="display: none;">
                     <div id="input_user_name">
-                        <span>ユーザー名</span><span style="color: red">*</span><br>
+                        <span>ユーザー名</span><span style="color: red;">*</span><br>
                         <div class="kintoneplugin-input-outer">
                             <input class="kintoneplugin-input-text" id="user_name">
                         </div>
+                        <div class="error-message-space" id="user_name_error"></div>
                     </div>
                     <div id="input_login_id">
-                        <span>ログインID</span><span style="color: red">*</span><br>
+                        <span>ログインID</span><span style="color: red;">*</span><br>
                         <div class="kintoneplugin-input-outer">
                             <input class="kintoneplugin-input-text" id="login_id">
                         </div>
+                        <div class="error-message-space" id="login_id_error"></div>
                     </div>
                     <div id="input_login_password">
-                        <span>パスワード</span><span style="color: red">*</span><br>
-                        <div class="kintoneplugin-input-outer">
-                            <input class="kintoneplugin-input-text" id="login_password">
+                        <div>
+                            <span>パスワード</span><span style="color: red;">*</span><br>
+                            <div class="kintoneplugin-input-outer">
+                                <input type="password" class="kintoneplugin-input-text" id="login_password">
+                                <button type="button" class="show_password"><i class="fa fa-eye"></i></button>
+                            </div>
+                            <div class="error-message-space" id="password_error1"></div>
+                        </div>
+                        <div>
+                            <span>パスワード再確認</span><span style="color: red;">*</span><br>
+                            <div class="kintoneplugin-input-outer">
+                                <input type="password" class="kintoneplugin-input-text"
+                                       id="login_password_confirmation">
+                                <button type="button" class="show_password"><i class="fa fa-eye"></i></button>
+                            </div>
+                            <div class="error-message-space" id="password_error2"></div>
                         </div>
                     </div>
                     <div id="input_login_mail">
@@ -248,11 +263,11 @@
                             <input type="checkbox" name="valid-map" id="valid0">
                             <label for="valid0" class="valid-label">表示</label>
                             <div style="max-width: 50%"><span class="config-name">設定</span></div>
-                            <button class="map">マップ設定</button>
-                            <button class="narrow-down">絞り込み</button>
-                            <button class="users">ユーザー設定</button>
+                            <button class="map" title="マップの設定を行う">マップ設定</button>
+                            <button class="narrow-down" title="マップの絞り込み設定を行う">絞り込み</button>
+                            <button class="users" title="マップを閲覧、編集できるユーザーを設定する">ユーザー設定</button>
                             <a class="check-open-map" style="display: none;">公開マップの確認</a>
-                            <button class="remove-config">×</button>
+                            <button class="remove-config" title="設定を削除する">×</button>
                         </div>
                     </div>
                 </div>
@@ -266,6 +281,7 @@
                         <div class="kintoneplugin-input-outer">
                             <input type="text" class="kintoneplugin-input-text" id="config_name" value="設定">
                         </div>
+                        <div class="error-message-space" id="config_name_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -274,9 +290,10 @@
                         <div class="kintoneplugin-input-outer">
                             <a id="open_url"></a><br>
                             <input type="text" class="kintoneplugin-input-text" id="open_url_name"
-                                placeholder="英数字で入力してください。">
+                                   placeholder="英数字で入力してください。">
                             <div><button id="create_Random_url">ランダムに生成する</button></div>
                         </div>
+                        <div class="error-message-space" id="open_url_name_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -286,6 +303,7 @@
                         <div class="kintoneplugin-input-outer">
                             <input type="number" class="kintoneplugin-input-text" id="appId">
                         </div>
+                        <div class="error-message-space" id="app_id_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -295,6 +313,7 @@
                         <div class="kintoneplugin-input-outer">
                             <input type="text" class="kintoneplugin-input-text" id="token">
                         </div>
+                        <div class="error-message-space" id="token_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -302,8 +321,9 @@
                             <span class="required-field">*</span>
                         </div>
                         <div class="kintoneplugin-input-outer">
-                            <input type="text" class="kintoneplugin-input-text" id="center_lat">
+                            <input type="number" class="kintoneplugin-input-text" id="center_lat">
                         </div>
+                        <div class="error-message-space" id="center_lat_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -311,8 +331,9 @@
                             <span class="required-field">*</span>
                         </div>
                         <div class="kintoneplugin-input-outer">
-                            <input type="text" class="kintoneplugin-input-text" id="center_lng">
+                            <input type="number" class="kintoneplugin-input-text" id="center_lng">
                         </div>
+                        <div class="error-message-space" id="center_lng_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -332,6 +353,7 @@
                         <select id="lat" class="map-config-selects">
                             <option value="">-----</option>
                         </select>
+                        <div class="error-message-space" id="latitude_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -341,6 +363,7 @@
                         <select id="lng" class="map-config-selects">
                             <option value="">-----</option>
                         </select>
+                        <div class="error-message-space" id="longitude_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -350,6 +373,7 @@
                         <select id="name" class="map-config-selects">
                             <option value="">-----</option>
                         </select>
+                        <div class="error-message-space" id="name_error"></div>
                     </div>
                     <div class="block">
                         <div>
@@ -378,9 +402,9 @@
                             </select>
                             <div class="kintoneplugin-table-td-operation">
                                 <button type="button" class="kintoneplugin-button-add-row-image add"
-                                    title="Add row"></button>
+                                        title="Add row"></button>
                                 <button type="button" class="kintoneplugin-button-remove-row-image remove"
-                                    title="Delete this row"></button>
+                                        title="Delete this row"></button>
                             </div>
                         </div>
                     </div>
@@ -392,7 +416,7 @@
                         <div class="kintoneplugin-input-radio" style="margin-top: 10px;">
                             <span class="kintoneplugin-input-radio-item">
                                 <input type="radio" name="check-registration" value="0" id="check_registration_0"
-                                    checked="">
+                                       checked="">
                                 <label for="check_registration_0">緯度・経度のみ登録</label>
                             </span>
                             <span class="kintoneplugin-input-radio-item">
@@ -408,15 +432,16 @@
                                     <option value="">-----</option>
                                 </select>
                             </div>
+                            <div class="error-message-space" id="image_field_error"></div>
                             <div class="kintoneplugin-input-radio" style="margin-top: 10px;">
                                 <span class="kintoneplugin-input-radio-item">
                                     <input type="radio" name="check-registration-image-type" value="0"
-                                        id="check_registration_image_type_0" checked="">
+                                           id="check_registration_image_type_0" checked="">
                                     <label for="check_registration_image_type_0">緯度・経度がある画像のみ登録</label>
                                 </span>
                                 <span class="kintoneplugin-input-radio-item">
                                     <input type="radio" name="check-registration-image-type" value="1"
-                                        id="check_registration_image_type_1">
+                                           id="check_registration_image_type_1">
                                     <label for="check_registration_image_type_1">緯度・経度がない画像もすべて登録</label>
                                 </span>
                             </div>
@@ -424,7 +449,7 @@
                                 <div class="kintoneplugin-input-checkbox">
                                     <span class="kintoneplugin-input-checkbox-item">
                                         <input type="checkbox" name="registration-datetime" value="0"
-                                            id="registration_datetime" checked="">
+                                               id="registration_datetime" checked="">
                                         <label for="registration_datetime">撮影日時を登録</label>
                                     </span>
                                 </div>
@@ -432,6 +457,7 @@
                                     <option value="">-----</option>
                                 </select>
                             </div>
+                            <div class="error-message-space" id="image_datetime_error"></div>
                         </div>
                     </div>
                     <div class="block">
@@ -481,21 +507,21 @@
                                             <div class="kintoneplugin-input-checkbox">
                                                 <span class="kintoneplugin-input-checkbox-item">
                                                     <input type="checkbox" name="show-map-authority" value="0"
-                                                        id="show_map_authority-0">
+                                                           id="show_map_authority-0">
                                                     <label for="show_map_authority-0">ピンの編集</label>
                                                 </span>
                                             </div>
                                             <div class="kintoneplugin-input-checkbox">
                                                 <span class="kintoneplugin-input-checkbox-item">
                                                     <input type="checkbox" name="show-map-authority" value="1"
-                                                        id="show_map_authority-1">
+                                                           id="show_map_authority-1">
                                                     <label for="show_map_authority-1">ピンの登録</label>
                                                 </span>
                                             </div>
                                             <div class="kintoneplugin-input-checkbox">
                                                 <span class="kintoneplugin-input-checkbox-item">
                                                     <input type="checkbox" name="show-map-authority" value="2"
-                                                        id="show_map_authority-2">
+                                                           id="show_map_authority-2">
                                                     <label for="show_map_authority-2">マップの設定</label>
                                                 </span>
                                             </div>
@@ -504,9 +530,9 @@
                                 </td>
                                 <td class="kintoneplugin-table-td-operation">
                                     <button type="button" class="kintoneplugin-button-add-row-image add"
-                                        title="Add row"></button>
+                                            title="Add row"></button>
                                     <button type="button" class="kintoneplugin-button-remove-row-image remove"
-                                        title="Delete this row"></button>
+                                            title="Delete this row"></button>
                                 </td>
                             </tr>
                             <tr>
@@ -525,21 +551,21 @@
                                             <div class="kintoneplugin-input-checkbox">
                                                 <span class="kintoneplugin-input-checkbox-item">
                                                     <input type="checkbox" name="show-map-authority" value="0"
-                                                        id="show_map_authority-0" checked="" disabled>
+                                                           id="show_map_authority-0" checked="" disabled>
                                                     <label for="show_map_authority-0">ピンの編集</label>
                                                 </span>
                                             </div>
                                             <div class="kintoneplugin-input-checkbox">
                                                 <span class="kintoneplugin-input-checkbox-item">
                                                     <input type="checkbox" name="show-map-authority" value="1"
-                                                        id="show_map_authority-1" checked="" disabled>
+                                                           id="show_map_authority-1" checked="" disabled>
                                                     <label for="show_map_authority-1">ピンの登録</label>
                                                 </span>
                                             </div>
                                             <div class="kintoneplugin-input-checkbox">
                                                 <span class="kintoneplugin-input-checkbox-item">
                                                     <input type="checkbox" name="show-map-authority" value="2"
-                                                        id="show_map_authority-2" checked="" disabled>
+                                                           id="show_map_authority-2" checked="" disabled>
                                                     <label for="show_map_authority-2">マップの設定</label>
                                                 </span>
                                             </div>
@@ -579,9 +605,9 @@
                         <div class="narrow-down-values"></div> <!-- 絞り込みの条件値 -->
                         <div class="kintoneplugin-table-td-operation">
                             <button type="button" class="kintoneplugin-button-add-row-image condition-add"
-                                title="条件を増やす"></button>
+                                    title="条件を増やす"></button>
                             <button type="button" class="kintoneplugin-button-remove-row-image condition-remove"
-                                title="条件を減らす"></button>
+                                    title="条件を減らす"></button>
                         </div>
                     </div>
                     <button id="narrow_down_clear">条件をクリア</button>

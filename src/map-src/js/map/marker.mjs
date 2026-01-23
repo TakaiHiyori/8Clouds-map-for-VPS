@@ -104,7 +104,7 @@ export const marker = async (record, config, domain, login, latLngBox, map) => {
     //グーグルマップのURLを作成
     const googleMap = `https://www.google.com/maps/search/${record[config.latitude].value},${record[config.longitude].value}/${record[config.latitude].value},${record[config.longitude].value},18.5z?entry=ttu&g_ep=EgoyMDI0MTExMi4wIKXMDSoASAFQAw%3D%3D`
 
-    let detailURL = `<a href="${googleMap}" target="_blank">グーグルマップ</a><a href="../${domainText}/detail/${record.$id.value}">詳細表示</a>`
+    let detailURL = `<a href="${googleMap}" target="_blank">グーグルマップ</a><a href="../${domainText}/detail/${record.$id.value}">詳細表示</a><button class="detail-button" id="${record.$id.value}">詳細表示</button>`
 
     if (!login) {
         //ログインしていないとき、詳細画面へ遷移するURLを非表示
@@ -145,7 +145,7 @@ export const checkRecord = (record, config) => {
     for (let i = 1; i <= config.narrow_row_number; i++) {
         const condition = config['narrow_row' + i]
         checkConditioin = true;
-        const conditionValue = JSON.parse(condition.value)
+        const conditionValue = condition.value
         switch (record[condition.field].type) {
             case 'SINGLE_LINE_TEXT':
             case 'MULTI_LINE_TEXT':

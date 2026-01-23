@@ -12,9 +12,6 @@
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- <link rel="stylesheet" href="./css/loading.css" />
-  <link rel="stylesheet" href="./css/style.css" />
-  <link rel="stylesheet" href="./css/51-modern-default.css" /> -->
   <link rel="stylesheet" href="../map.css" />
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css" />
@@ -27,13 +24,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@coconmap/leaflet.communitygeocoder/dist/bundle.js"></script>
   <script
           src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
-  <script src="https://js.cybozu.com/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script>
+  <!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-  <!-- <script src="https://unpkg.com/shapefile@0.5.7"></script> -->
   <script src="https://cdn.jsdelivr.net/gh/four4to6/latlonxy_js@latest/data/latlonxy.js"></script>
   <script type="module" src="../map.js"></script>
-  <!-- <script type="module" src="./js/clicks.mjs"></script> -->
   <title>マップ</title>
   <!-- <link rel="icon" href="https://8clouds-plugin.sakura.ne.jp/webMaps/map/image/8clouds_logo1.png"> -->
 </head>
@@ -65,7 +60,7 @@
       <button id="drawing_end" title="終了">×</button>
     </div>
     <div class="draw_buttons">
-      <button id="draw_line">線</button>
+      <button id="draw_line" title="直線"><img src="../line.png"></button>
       <div class="draw-line-manu">
         <input type="color" class="draw-line-color">
         <!-- <select class="line-style">
@@ -75,7 +70,7 @@
       </div>
     </div>
     <div class="draw_buttons">
-      <button id="draw_circle">円</button>
+      <button id="draw_circle" title="円"><img src="../circle.png"></button>
       <div class="draw-circle-manu">
         <div>
           <input type="color" class="draw-circle-color">
@@ -95,7 +90,7 @@
       </div>
     </div>
     <div class="draw_buttons">
-      <button id="draw_area">エリア</button>
+      <button id="draw_area" title="多角形"><img src="../polygon.png"></button>
       <div class="draw-area-manu">
         <input type="color" class="draw-area-color">
         <div>
@@ -113,12 +108,12 @@
   </div>
   </div>
   <div id="menu">
-    <button type="button" id="search_records">絞込み</button>
-    <button type="button" id="address_search">住所</button>
-    <button type="button" id="new_record" style="display: none;">クリックで登録</button>
-    <button id="input_image_button" style="display: none;">画像で登録</button>
-    <input type="file" id="input_image" accept="image/*" style="display: none;" multiple>
-    <div class="select-button" id="map_tiles">
+    <button type="button" id="search_records" title="ピンを絞り込む">絞込み</button>
+    <button type="button" id="address_search" title="住所検索を行う">住所</button>
+    <button type="button" id="new_record" style="display: none;" title="マップをクリックして登録する">クリックで登録</button>
+    <button id="input_image_button" style="display: none;" title="画像でピンを登録する">画像で登録</button>
+    <input type="file" id="input_image" style="display: none;" multiple>
+    <div class="select-button" id="map_tiles" title="マップのタイルを変更">
       <button id="map_tile_select_button" class="show-button-dropdown">
         <img src="../mapTile.png">
       </button>
@@ -130,21 +125,21 @@
       </div>
     </div>
     <div class="select-button" id="map-types">
-      <button id="map_type_select_button" class="show-button-dropdown">
+      <button id="map_type_select_button" class="show-button-dropdown" title="表示するマップを切り替える">
         マップ切替
       </button>
       <div class="select-options" style="display: none;"></div>
     </div>
     <div class="select-button" id="map-layers">
-      <button id="map_show_other_layer" class="show-button-dropdown">
+      <button id="map_show_other_layer" class="show-button-dropdown" title="閲覧できるほかのマップを重ねて表示する">
         他のマップ
       </button>
       <div class="select-options" style="display: none;"></div>
     </div>
-    <button id="drawing" style="display: none;">描画</button>
-    <button id="add_shapefile">シェープファイルで追加</button>
-    <button id="GSP_start_stop">GPSで経路作成開始</button>
+    <button id="drawing" style="display: none;" title="マップ上に描画を行う">描画</button>
+    <button id="add_shapefile" title="シェープファイルでピンや経路を追加する" style="display: none;">シェープファイルで追加</button>
     <input type="file" id="select_shapefile" style="display: none;" multiple>
+    <!-- <button id="GSP_start_stop">GPSで経路作成開始</button> -->
   </div>
   <div id="controlArtistName"></div>
   <div id="controlAlbumName"></div>

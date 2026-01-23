@@ -4,27 +4,29 @@ import pool from '../db';
 
 const app = new Hono()
 
-app.post('/getConfig', async (c) => {
+app.get('/getConfig', async (c) => {
   c.header('Content-Type', 'application/json; charset=utf-8');
   try {
-    const body = await c.req.json();
-    console.log('getConfig実行:', body);
+    const domain = c.req.query('domain');
+    const user = c.req.query('user');
+    console.log('getConfig実行:', domain, user);
 
     // ドメインを取得
     const getDomain = await pool.query(
-      `SELECT * FROM domain WHERE domain_text = $1`,
-      [body.domain]
+      `SELECT * FROM benri_map.benri_map_domain WHERE domain_text = $1`,
+      [domain]
     )
 
     const config: { [key: string]: any } = {
       domainId: getDomain.rows[0].id,
       domain: getDomain.rows[0].domain,
-      openDomain: getDomain.rows[0].open_domain_text
+      domainText: getDomain.rows[0].domain_text,
+      // openDomain: getDomain.rows[0].open_domain_text
     }
 
     // オプションを取得
     const getOptions = await pool.query(
-      `SELECT * FROM options WHERE domain = $1`,
+      `SELECT * FROM benri_map.benri_map_options WHERE domain = $1`,
       [getDomain.rows[0].id]
     )
 
@@ -34,15 +36,35 @@ app.post('/getConfig', async (c) => {
 
     // 設定を取得
     const getConfigs = await pool.query(
-      `SELECT * FROM configs WHERE domain = $1 ORDER BY id asc`,
-      [getDomain.rows[0].id]
+      `SELECT
+      bc.id,
+      bc.map_title,
+      bc.open_url,
+      bc.app_id,
+      bc.token,
+      bc.center_lat,
+      bc.center_lng,
+      bc.marker,
+      bc.name,
+      bc.latitude,
+      bc.longitude,
+      bc.group,
+      bc.color,
+      bc.map_tile,
+      bc.add_image,
+      bc.creater,
+      bc.valid
+      FROM benri_map.benri_map_configs bc
+      JOIN benri_map.benri_map_show_users bsu ON bc.id = bsu.config
+      WHERE bc.domain = $1 AND bc.valid = true AND bsu.user = $2 AND bsu.set_config = true ORDER BY bc.id asc`,
+      [getDomain.rows[0].id, user]
     );
 
     // 取得した設定の数ループ
     for (let i = 0; i < getConfigs.rows.length; i++) {
       const getConfig = getConfigs.rows[i]
 
-      config['config' + (i + 1)] = {
+      config[getConfig.id] = {
         id: getConfig.id,
         mapTitle: getConfig.map_title,
         openURL: getConfig.open_url,
@@ -64,14 +86,14 @@ app.post('/getConfig', async (c) => {
 
       // 色の設定を取得
       const getColors = await pool.query(
-        `SELECT * FROM colors WHERE config = $1`,
+        `SELECT * FROM benri_map.benri_map_colors WHERE config = $1`,
         [getConfig.id]
       )
 
-      config['config' + (i + 1)]['change_color_row_num'] = getColors.rows.length;
+      config[getConfig.id]['change_color_row_num'] = getColors.rows.length;
       for (let j = 0; j < getColors.rows.length; j++) {
         const getColor = getColors.rows[j]
-        config['config' + (i + 1)]['change_color_row' + (j + 1)] = {
+        config[getConfig.id]['change_color_row' + (j + 1)] = {
           option: getColor.text,
           color: getColor.color,
           icon: getColor.icon,
@@ -81,28 +103,28 @@ app.post('/getConfig', async (c) => {
 
       // ポップアップの設定を取得
       const getPopups = await pool.query(
-        `SELECT * FROM popups WHERE config = $1`,
+        `SELECT * FROM benri_map.benri_map_popups WHERE config = $1`,
         [getConfig.id]
       )
 
-      config['config' + (i + 1)]['popup_row_num'] = getPopups.rows.length;
+      config[getConfig.id]['popup_row_num'] = getPopups.rows.length;
       for (let j = 0; j < getPopups.rows.length; j++) {
         const getPopup = getPopups.rows[j]
-        config['config' + (i + 1)]['popup_row' + (j + 1)] = {
+        config[getConfig.id]['popup_row' + (j + 1)] = {
           popupField: getPopup.field,
           popupFieldName: getPopup.label
         }
       }
 
       const getNarrows = await pool.query(
-        `SELECT * FROM narrowDown WHERE config = $1`,
+        `SELECT * FROM benri_map.benri_map_conditions WHERE config = $1`,
         [getConfig.id]
       )
 
-      config['config' + (i + 1)]['narrow_row_number'] = getNarrows.rows.length;
+      config[getConfig.id]['narrow_row_number'] = getNarrows.rows.length;
       for (let j = 0; j < getNarrows.rows.length; j++) {
         const getNarrow = getNarrows.rows[j]
-        config['config' + (i + 1)]['narrow_row' + (j + 1)] = {
+        config[getConfig.id]['narrow_row' + (j + 1)] = {
           field: getNarrow.field,
           condition: getNarrow.condition,
           value: JSON.parse(getNarrow.value),
@@ -111,18 +133,21 @@ app.post('/getConfig', async (c) => {
       }
 
       const showUsers = await pool.query(
-        `SELECT * FROM mapShowUsers WHERE config = $1`,
+        `SELECT *
+        FROM benri_map.benri_map_show_users bsu JOIN benri_map.benri_map_users bu ON bsu.user = bu.id
+         WHERE config = $1 ORDER BY bsu.id asc`,
         [getConfig.id]
       )
 
-      config['config' + (i + 1)]['users_row_number'] = showUsers.rows.length;
+      config[getConfig.id]['users_row_number'] = showUsers.rows.length;
       for (let j = 0; j < showUsers.rows.length; j++) {
         const showUser = showUsers.rows[j]
-        config['config' + (i + 1)]['user_row' + (j + 1)] = {
+        config[getConfig.id]['user_row' + (j + 1)] = {
           user: showUser.user,
           edit: showUser.edit,
           create: showUser.create,
           setConfig: showUser.set_config,
+          authority: showUser.authority
         }
       }
     }

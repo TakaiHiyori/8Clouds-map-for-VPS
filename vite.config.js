@@ -234,5 +234,21 @@ export default defineConfig(async ({ mode }) => {
         },
       }
     }
+  } else if (mode === 'tsx') {
+    return {
+      base: '/benri/',
+      plugins: [react()],
+      resolve: {
+        alias: {
+          '@': path.resolve(__dirname, './src/react-map-src'),
+          '@spa': path.resolve(__dirname, './src/react-map-src/tsx'),
+        },
+      },
+      build: {
+        target: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
+        outDir: 'dist/spa',
+        emptyOutDir: true,
+      },
+    };
   }
 });

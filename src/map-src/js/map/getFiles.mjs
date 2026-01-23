@@ -1,4 +1,5 @@
 import { uploadFile } from "../kintoneAPI.mjs";
+import $ from "jquery"
 
 let getFiles = {};
 
@@ -15,6 +16,7 @@ const getFileExif = async (file, config, recordsResp) => {
             // ====== exif情報の取得
             const bytes = e.target.result;
             const exif = EXIF.readFromBinaryFile(bytes);
+            console.log(exif)
 
             if (exif) {
                 let checkFile = true
@@ -40,7 +42,7 @@ const getFileExif = async (file, config, recordsResp) => {
                 }
                 if (checkFile) {
 
-                    let DATETIME = exif['DateTimeOriginal'].replace(':', '-').replace(':', '-');
+                    let DATETIME = exif['DateTimeOriginal'];
                     const latMinSec = exif['GPSLatitude'];
                     let degMinSec = String(latMinSec).split(",");
                     let latitude = degMinSec[0] / 1 + degMinSec[1] / 60 + degMinSec[2] / 3600;
@@ -50,43 +52,78 @@ const getFileExif = async (file, config, recordsResp) => {
                     let longitude = degMinSec[0] / 1 + degMinSec[1] / 60 + degMinSec[2] / 3600;
                     longitude = Math.round(longitude * 100000) / 100000;
 
-
-                    $('#image_modal #modal_body #add_image_button').before($(`
-                        <div class="image-bodys">
-                            <div style="margin-bottom: 10px">
-                                <div class="input-title">ピンの名前</div>
-                                <input type="text" value="${file.name.replace(/\..*$/, '')}" placeholder="ピンの名前を入力してください。" class="kintoneplugin-input-text pin-name">
-                            </div>
-                            <div style="display: flex">
-                                <img src="${URL.createObjectURL(file)}" alt="${file.name}">
-                                <div>
-                                    <div class="image-datetime">${DATETIME}</div>
-                                    <div class="input-title file-name">ファイル名</div>
-                                    <input type="text" value="${file.name}" placeholder="ファイル名を入力してください。" class="kintoneplugin-input-text new-file-name">
+                    if (!latMinSec || !lngMinSec) {
+                        if (config.addImage.checkRegistration && config.addImage.RegistrationAllImage) {
+                            $('#image_modal #modal_body #add_image_button').before($(`
+                                <div class="image-bodys">
+                                    <div style="margin-bottom: 10px">
+                                        <div class="input-title">ピンの名前</div>
+                                        <input type="text" value="${file.name.replace(/\..*$/, '')}" placeholder="ピンの名前を入力してください。" class="kintoneplugin-input-text pin-name">
+                                    </div>
+                                    <div style="display: flex">
+                                        <img src="${URL.createObjectURL(file)}" alt="${file.name}">
+                                        <div>
+                                            <div class="input-title">ファイル名</div>
+                                            <input type="text" value="${file.name}" placeholder="ファイル名を入力してください。" class="kintoneplugin-input-text new-file-name">
+                                        </div>
+                                        <button class="delete-file" id="${file.name}">×</button>
+                                    </div>
                                 </div>
-                                <button class="delete-file" id="${file.name}">×</button>
+                            `))
+                            getFiles[file.name] = {
+                                file: file,
+                                exif: false
+                            };
+                            $(`.delete-file`).off('click').click(function () {
+                                delete getFiles[$(this).prop('id')]
+                                $(this).parents('.image-bodys').remove()
+                            })
+
+                            $('.new-file-name').change(function () {
+                                $(this).parents('.image-bodys').find('.pin-name').val($(this).val().replace(/\..*$/, ''))
+                            })
+                        }
+                    } else {
+                        if (DATETIME) {
+                            DATETIME = DATETIME.replace(':', '-').replace(':', '-');
+                        }
+                        $('#image_modal #modal_body #add_image_button').before($(`
+                            <div class="image-bodys">
+                                <div style="margin-bottom: 10px">
+                                    <div class="input-title">ピンの名前</div>
+                                    <input type="text" value="${file.name.replace(/\..*$/, '')}" placeholder="ピンの名前を入力してください。" class="kintoneplugin-input-text pin-name">
+                                </div>
+                                <div style="display: flex">
+                                    <img src="${URL.createObjectURL(file)}" alt="${file.name}">
+                                    <div>
+                                        <div class="image-datetime">${DATETIME}</div>
+                                        <div class="input-title file-name">ファイル名</div>
+                                        <input type="text" value="${file.name}" placeholder="ファイル名を入力してください。" class="kintoneplugin-input-text new-file-name">
+                                    </div>
+                                    <button class="delete-file" id="${file.name}">×</button>
+                                </div>
                             </div>
-                        </div>
-                    `))
+                        `))
 
-                    const fileExif = {
-                        latitude: latitude,
-                        longitude: longitude,
-                        datetime: DATETIME.replace(' ', 'T') + 'Z'
+                        const fileExif = {
+                            latitude: latitude,
+                            longitude: longitude,
+                            datetime: DATETIME ? DATETIME.replace(' ', 'T') + 'Z' : null
+                        }
+
+                        getFiles[file.name] = {
+                            file: file,
+                            exif: fileExif
+                        };
+                        $(`.delete-file`).off('click').click(function () {
+                            delete getFiles[$(this).prop('id')]
+                            $(this).parents('.image-bodys').remove()
+                        })
+
+                        $('.new-file-name').change(function () {
+                            $(this).parents('.image-bodys').find('.pin-name').val($(this).val().replace(/\..*$/, ''))
+                        })
                     }
-
-                    getFiles[file.name] = {
-                        file: file,
-                        exif: fileExif
-                    };
-                    $(`.delete-file`).off('click').click(function () {
-                        delete getFiles[$(this).prop('id')]
-                        $(this).parents('.image-bodys').remove()
-                    })
-
-                    $('.new-file-name').change(function () {
-                        $(this).parents('.image-bodys').find('.pin-name').val($(this).val().replace(/\..*$/, ''))
-                    })
                 }
             } else if (config.addImage.checkRegistration && config.addImage.RegistrationAllImage) {
                 let checkFile = true
@@ -160,10 +197,23 @@ const getFileExif = async (file, config, recordsResp) => {
         } else {
             $('.error-message').html('<p>一度に保存できる枚数は100件までです。</p>')
         }
+
+        console.log(Object.keys(getFiles).length)
+        if (Object.keys(getFiles).length === 0) {
+            $('#save_files').attr('disabled', true)
+        } else {
+            $('#save_files').attr('disabled', false)
+        }
     };
     fileReader.readAsArrayBuffer(file);
 }
 
+/**
+ * 画像を登録する
+ * @param {object} config マップの設定
+ * @param {string} domain kintoneのドメイン
+ * @returns 新しいレコード
+ */
 export const postImageRecords = async (config, domain) => {
     if (Object.keys(getFiles).length === 0) {
         $('.error-message').html('<p>保存する画像がありません。</p>');
@@ -215,8 +265,12 @@ export const postImageRecords = async (config, domain) => {
             }
             if (config.addImage.imageDateTime && getFile.exif) {
                 const nowZone = luxon.DateTime.now().setZone('Asia/Tokyo');
-                const datetime = luxon.DateTime.fromISO(getFile.exif.datetime).setZone('utc').minus({ hours: Number(nowZone.o / 60) }).toFormat('yyyy-MM-dd\'T\'HH:mm\'Z\'');
-                postRecordBodys.records[count][config.addImage.imageDateTimeField] = { value: datetime }
+                if (getFile.exif.datetime) {
+                    const datetime = luxon.DateTime.fromISO(getFile.exif.datetime).setZone('utc').minus({ hours: Number(nowZone.o / 60) }).toFormat('yyyy-MM-dd\'T\'HH:mm\'Z\'');
+                    postRecordBodys.records[count][config.addImage.imageDateTimeField] = { value: datetime }
+                } else {
+                    postRecordBodys.records[count][config.addImage.imageDateTimeField] = { value: null }
+                }
             }
             count++;
         }
@@ -281,7 +335,7 @@ export const showGetFileModal = async (files, config, recordsResp) => {
                         </div>
                         <div id="modal_footer">
                             <button class="kintoneplugin-button-dialog-cancel" id="input_cancel">キャンセル</button>
-                            <button class="kintoneplugin-button-dialog-ok" id="save_files">保存</button>
+                            <button class="kintoneplugin-button-dialog-ok" id="save_files">登録</button>
                         </div>
                     </div>
                 </div>

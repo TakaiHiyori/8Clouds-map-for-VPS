@@ -9,6 +9,9 @@
  *  画像表示モーダルを作成する
  */
 
+// import $ from "jquery"
+
+import { DateTime } from "luxon";
 import { escapeHtml } from '../escapeHtml.mjs'
 import { uploadFile } from '../kintoneAPI.mjs'
 
@@ -170,7 +173,7 @@ function createFieldsBlock(body, layoutField, field, config, type, code) {
                 if (prop.defaultValue !== '') {
                     dateArea.attr('value', prop.defaultValue);
                 } else if (prop.defaultNowValue) {
-                    dateArea.attr('value', luxon.DateTime.now().toFormat('yyyy-MM-dd'));
+                    dateArea.attr('value', DateTime.now().toFormat('yyyy-MM-dd'));
                 }
 
                 body.append(block);
@@ -185,7 +188,7 @@ function createFieldsBlock(body, layoutField, field, config, type, code) {
                 if (prop.defaultValue !== '') {
                     timeArea.attr('value', prop.defaultValue);
                 } else if (prop.defaultNowValue) {
-                    timeArea.attr('value', luxon.DateTime.now().toFormat('HH:mm'));
+                    timeArea.attr('value', DateTime.now().toFormat('HH:mm'));
                 }
 
                 body.append(block);
@@ -201,7 +204,7 @@ function createFieldsBlock(body, layoutField, field, config, type, code) {
                 if (prop.defaultValue !== '') {
                     datetimeArea.attr('value', prop.defaultValue);
                 } else if (prop.defaultNowValue) {
-                    datetimeArea.attr('value', luxon.DateTime.now().toFormat('yyyy-MM-dd\'T\'HH:mm'));
+                    datetimeArea.attr('value', DateTime.now().toFormat('yyyy-MM-dd\'T\'HH:mm'));
                 }
 
                 body.append(block);
@@ -362,7 +365,7 @@ function createFieldsBlock(body, layoutField, field, config, type, code) {
                 if (prop.defaultValue !== '') {
                     dateArea.attr('value', prop.defaultValue);
                 } else if (prop.defaultNowValue) {
-                    dateArea.attr('value', luxon.DateTime.now().toFormat('yyyy-MM-dd'));
+                    dateArea.attr('value', DateTime.now().toFormat('yyyy-MM-dd'));
                 }
 
                 body.append(dateArea);
@@ -374,7 +377,7 @@ function createFieldsBlock(body, layoutField, field, config, type, code) {
                 if (prop.defaultValue !== '') {
                     timeArea.attr('value', prop.defaultValue);
                 } else if (prop.defaultNowValue) {
-                    timeArea.attr('value', luxon.DateTime.now().toFormat('HH:mm'));
+                    timeArea.attr('value', DateTime.now().toFormat('HH:mm'));
                 }
 
                 body.append(timeArea);
@@ -387,7 +390,7 @@ function createFieldsBlock(body, layoutField, field, config, type, code) {
                 if (prop.defaultValue !== '') {
                     datetimeArea.attr('value', prop.defaultValue);
                 } else if (prop.defaultNowValue) {
-                    datetimeArea.attr('value', luxon.DateTime.now().toFormat('yyyy-MM-dd\'T\'HH:mm'));
+                    datetimeArea.attr('value', DateTime.now().toFormat('yyyy-MM-dd\'T\'HH:mm'));
                 }
 
                 body.append(datetimeArea);
@@ -924,8 +927,8 @@ export async function createMarker(latlng, markers, config, field, records, doma
 
                 case 'DATETIME': //日時
                     if ($(`#${prop.code}`).val()) {
-                        const nowZone = luxon.DateTime.now().setZone('Asia/Tokyo');
-                        const date = luxon.DateTime.fromISO($(`#${prop.code}`).val() + 'Z').setZone('utc').minus({ hours: Number(nowZone.o / 60) }).toFormat('yyyy-MM-dd\'T\'HH:mm\'Z\'');
+                        const nowZone = DateTime.now().setZone('Asia/Tokyo');
+                        const date = DateTime.fromISO($(`#${prop.code}`).val() + 'Z').setZone('utc').minus({ hours: Number(nowZone.o / 60) }).toFormat('yyyy-MM-dd\'T\'HH:mm\'Z\'');
                         record.record.record[prop.code] = { value: date };
                     }
                     break;
@@ -991,8 +994,8 @@ export async function createMarker(latlng, markers, config, field, records, doma
 
                                 case 'DATETIME': //日時
                                     if ($(`#${prop.code} #create_record_table_body > tr:eq(${i}) #${field.code}`).val()) {
-                                        const nowZone = luxon.DateTime.now().setZone('Asia/Tokyo');
-                                        const date = luxon.DateTime.fromISO($(`#${prop.code} #create_record_table_body > tr:eq(${i}) #${field.code}`).val() + 'Z').setZone('utc').minus({ hours: Number(nowZone.o / 60) }).toFormat('yyyy-MM-dd\'T\'HH:mm\'Z\'');
+                                        const nowZone = DateTime.now().setZone('Asia/Tokyo');
+                                        const date = DateTime.fromISO($(`#${prop.code} #create_record_table_body > tr:eq(${i}) #${field.code}`).val() + 'Z').setZone('utc').minus({ hours: Number(nowZone.o / 60) }).toFormat('yyyy-MM-dd\'T\'HH:mm\'Z\'');
                                         record.record.record[prop.code].value[count].value[field.code] = { value: date };
                                     }
                                     break;
@@ -1211,7 +1214,7 @@ export async function createPopup(record, config, domain) {
             case 'UPDATED_TIME': //更新日時
                 let datetime = '';
                 if (record[config['popup_row' + j].popupField].value !== '') {
-                    datetime = luxon.DateTime.fromISO(record[config['popup_row' + j].popupField].value).toFormat('yyyy/MM/dd HH:mm');
+                    datetime = DateTime.fromISO(record[config['popup_row' + j].popupField].value).toFormat('yyyy/MM/dd HH:mm');
                 }
 
                 tbody += `<td>

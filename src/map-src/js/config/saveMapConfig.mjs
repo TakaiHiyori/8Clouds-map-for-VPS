@@ -4,8 +4,10 @@ const to16 = (num) => {
     return hex.length === 1 ? `0${hex}` : hex;
 }
 
-export const saveMapConfig = async (config, key, checkLogin, users) => {
+export const saveMapConfig = async (config, key, checkLogin, users, localStorageKey) => {
     try {
+        $('.error-message-space').hide()
+        let error = false
         let configName = $('#config_name').val()
         if (configName === '') {
             //設定の名前が空白の時、デフォルトの「設定」を入れる
@@ -32,25 +34,41 @@ export const saveMapConfig = async (config, key, checkLogin, users) => {
             imageDateTimeField: $('#image_datetime_field').val()
         }
 
-        console.log(addImage)
-
         if (appId === '') {
-            throw new Error('アプリIDが設定されていません。');
-        } else if (token === '') {
-            throw new Error('トークンが設定されていません。')
-        } else if (latitude === '') {
-            throw new Error('緯度が設定されていません。')
-        } else if (longitude === '') {
-            throw new Error('経度が設定されていません。')
-        } else if (name === '') {
-            throw new Error('ピンの名前が入力されていません。');
+            $('#app_id_error').show().text('アプリIDを入力してください。');
+            error = true;
+            // throw new Error('アプリIDが設定されていません。');
+        }
+        if (token === '') {
+            $('#token_error').show().text('APIトークンを入力してください。')
+            error = true;
+            // throw new Error('トークンが設定されていません。')
+        }
+        if (latitude === '') {
+            $('#latitude_error').show().text('緯度を設定してください。')
+            error = true;
+            // throw new Error('緯度が設定されていません。')
+        }
+        if (longitude === '') {
+            $('#longitude_error').show().text('経度を設定してください。')
+            error = true;
+            // throw new Error('経度が設定されていません。')
+        }
+        if (name === '') {
+            $('#name_error_error').show().text('ピンの名前を設定してください。')
+            error = true;
+            // throw new Error('ピンの名前が入力されていません。');
         }
 
         if (!(/^[a-zA-Z0-9]*$/.test(openURL.trim()))) {
             //英数字のみ
-            throw new Error('公開用のURLは半角英数字のみにしてください。')
+            $('#open_url_name_error').show().text('公開用のURLは半角英数字のみにしてください。')
+            error = true;
+            // throw new Error('公開用のURLは半角英数字のみにしてください。')
         } else if (openURL.trim().length >= 256) {
-            throw new Error('公開用のURLは255文字以下にしてください。')
+            $('#open_url_name_error').show().text('公開用のURLは255文字以下にしてください。')
+            error = true;
+            // throw new Error('公開用のURLは255文字以下にしてください。')
         }
 
         if (centerLat === '') {
@@ -62,10 +80,19 @@ export const saveMapConfig = async (config, key, checkLogin, users) => {
 
         if (addImage.checkRegistration) {
             if (addImage.imageField === '') {
-                throw new Error('画像を保存するフィールドが設定されていません。')
-            } else if (addImage.imageDateTime && addImage.imageDateTimeField === '') {
-                throw new Error('画像の日時を保存するフィールドが設定されていません。')
+                $('#image_field_error').show().text('画像を保存するフィールドが設定されていません。')
+                error = true;
+                // throw new Error('画像を保存するフィールドが設定されていません。')
             }
+            if (addImage.imageDateTime && addImage.imageDateTimeField === '') {
+                $('#image_datetime_error').show().text('画像の日時を保存するフィールドが設定されていません。')
+                error = true;
+                // throw new Error('画像の日時を保存するフィールドが設定されていません。')
+            }
+        }
+
+        if (error) {
+            throw new Error('正しく設定ができていない場所があります。確認して設定してください。')
         }
 
         let change_color_row_num = $('#cf-plugin-group-tbody >tr').length;
@@ -107,15 +134,18 @@ export const saveMapConfig = async (config, key, checkLogin, users) => {
             }
         }
 
-        let id = '', user = [], creater = checkLogin.id;
+        let id = '', creater = checkLogin.id, user = [creater];
         if (config[key] !== undefined) {
             id = Number(config[key].id);
             creater = config[key].creater
         }
 
-        for (let i = 0; i < users.length; i++) {
-            if (users[i].authority === 0 || users[i].id === checkLogin.id) {
-                user.push(users[i].id)
+        if (checkLogin.authority !== 0) {
+            for (let i = 0; i < users.length; i++) {
+                if (users[i].authority === 0) {
+                    user.push(users[i].id)
+                    break;
+                }
             }
         }
 
@@ -157,7 +187,7 @@ export const saveMapConfig = async (config, key, checkLogin, users) => {
         $(`#${key} .config-name`).text(configName)
 
         if (openURL.trim() !== '') {
-            $(`#${key} .check-open-map`).attr({ 'href': `http://133.167.91.11/benri/${config.openDomain}/${openURL}`, 'target': '_blank' }).css({ 'display': 'block' });
+            $(`#${key} .check-open-map`).attr({ 'href': `https://solution.8clouds.co.jp/benri/${config.openDomain}/${openURL}`, 'target': '_blank' }).css({ 'display': 'block' });
         } else {
             $(`#${key} .check-open-map`).attr({ 'href': `` }).css({ 'display': 'none' });
         }
@@ -196,6 +226,28 @@ export const saveMapConfig = async (config, key, checkLogin, users) => {
                 }
                 users_row_number = 2
             }
+        }
+
+        console.log(putConfig.id)
+        if (putConfig.id === '') {
+            //新規登録の場合、閲覧するマップを追加する
+            checkLogin.showMaps.push({
+                config: post.id,
+                edit: true,
+                create: true,
+                set_config: true,
+                user: checkLogin.id
+            })
+            console.log(checkLogin.showMaps)
+            const loginConfig = {
+                id: checkLogin.id,
+                userId: checkLogin.userId,
+                userName: checkLogin.userName,
+                authority: checkLogin.authority,
+                loginTime: checkLogin.loginTime,
+                showMaps: checkLogin.showMaps
+            }
+            localStorage.setItem(localStorageKey, JSON.stringify(loginConfig));
         }
 
         return {

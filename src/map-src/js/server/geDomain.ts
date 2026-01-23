@@ -12,7 +12,7 @@ app.post('/getDomain', async (c) => {
 
     // ドメインを取得
     const getDomain = await pool.query(
-      `SELECT * FROM domain WHERE domain_text = $1`,
+      `SELECT * FROM benri_map.benri_map_domain WHERE domain_text = $1`,
       [body.domain]
     )
 

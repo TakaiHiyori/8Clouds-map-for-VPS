@@ -11,7 +11,8 @@ app.post('/checkLogin', async (c) => {
     console.log('checkLogin実行:', body);
 
     const result = await pool.query(
-      `SELECT users.* FROM users AS users JOIN domain ON users.domain = domain.id
+      `SELECT users.* FROM benri_map.benri_map_users AS users
+      JOIN benri_map.benri_map_domain AS domain ON users.domain = domain.id
       WHERE domain.domain_text = $1 AND users.user_id = $2 AND users.password = md5($3)`,
       [body.domain, body.id, body.pass]
     );
@@ -20,7 +21,7 @@ app.post('/checkLogin', async (c) => {
       console.log('ログイン成功:', result.rows[0]);
 
       const getShowMaps = await pool.query(
-        `SELECT * FROM mapShowUsers WHERE "user" = $1`,
+        `SELECT * FROM benri_map.benri_map_show_users WHERE "user" = $1`,
         [result.rows[0].id]
       )
 

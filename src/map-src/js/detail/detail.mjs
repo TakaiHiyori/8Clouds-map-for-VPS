@@ -58,13 +58,14 @@ const recordId = id;
 
 const showMapLocalStorageKey = `show_map_${domainText}_${JSON.parse(checkLogin).id}`
 const showMapInformation = JSON.parse(localStorage.getItem(showMapLocalStorageKey))
+console.log(showMapInformation)
 
 const configResp = await window.fetch("../../getConfig", {
     method: 'POST',
     headers: {
         "Content-Type": "application/json"
     },
-    body: JSON.stringify({ domain: domainText })
+    body: JSON.stringify({ domain: domainText, user: JSON.parse(checkLogin).id })
 });
 const config = await configResp.json();
 const domain = config.domain
@@ -118,7 +119,7 @@ let fileImageURLs = {}, uploadFiles = {};
 const showUser = loginUser.showMaps.filter(map => map.config === mapConfig.id);
 console.log(showUser)
 
-if (showUser[0].edit === 0) {
+if (!showUser[0].edit) {
     $('#record_edit').hide();
 }
 

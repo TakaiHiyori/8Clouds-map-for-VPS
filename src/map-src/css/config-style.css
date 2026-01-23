@@ -163,11 +163,11 @@ button.delete-user-button {
 
 /* ユーザーの追加 */
 
-#add_user_page div {
+#add_user_page>div {
   margin-bottom: 10px;
 }
 
-#add_user_page div div {
+#add_user_page>div>div {
   margin-top: 3px;
 }
 
@@ -180,8 +180,18 @@ button.delete-user-button {
   align-items: anchor-center;
 }
 
+.map-configs button {
+  cursor: pointer;
+  /* 明度を下げて濃くする */
+}
+
+.map-configs button:hover {
+  background-color: color-mix(in srgb, currentColor, white 75%);
+  /* 明度を下げて濃くする */
+}
+
 .map-config>div {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .map-config {
@@ -203,7 +213,14 @@ span.config-name {
 }
 
 .kintoneplugin-input-text {
-  margin: 3px 0px 10px 0px;
+  margin: 3px 0px 0px 0px;
+}
+
+div.error-message-space {
+  background-color: red;
+  color: white;
+  height: 30px;
+  display: none;
 }
 
 button.remove-config {
@@ -270,7 +287,7 @@ button#create_Random_url {
   color: #3498db;
   align-items: center;
   font-size: 14px;
-  margin: 3px 0px 10px 0px;
+  margin: 3px 0px 0px 0px;
 }
 
 .map-config ::picker(select) {
@@ -442,12 +459,12 @@ span#map_name {
 /* ==============================================絞り込み======================================= */
 
 select:disabled,
-input:disabled{
+input:disabled {
   background-color: #ebebeb;
 }
 
 /* ==========================================全体の設定===================================== */
-.administrator-config{
+.administrator-config {
   margin-top: 29px;
 }
 

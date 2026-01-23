@@ -9,6 +9,7 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import checkLogin from './map-src/js/server/login/checkLogin';
 
 import getConfig from './map-src/js/server/config/getConfig';
+import getAllConfig from './map-src/js/server/config/getAllConfig'
 import getPublicConfig from './map-src/js/server/config/getPublicConfig';
 import setConfig from './map-src/js/server/config/setConfig';
 import updateConfig from './map-src/js/server/config/updateConfig';
@@ -53,6 +54,7 @@ app.use('*', logger())
 app.route('/', checkLogin)
 
 app.route('/', getConfig)
+app.route('/', getAllConfig)
 app.route('/', getPublicConfig)
 app.route('/', setConfig)
 app.route('/', updateConfig)
@@ -86,7 +88,7 @@ app.route('/', getLatlng)
 
 //htmlファイルの配信
 app.use('/notAccess', serveStatic({ path: './html/notAccessPage.html' }))
-// app.use('/8CloudsPablicMap', serveStatic({ path: './html/map.html' }))
+
 app.use('/*/config', serveStatic({ path: './html/config.html' }))
 app.use('/*/detail/*', serveStatic({ path: './html/detail.html' }))
 app.use('/*/login', serveStatic({ path: './html/login.html' }))
@@ -110,8 +112,21 @@ app.use('/mapTile.png', serveStatic({ path: './image/mapTile.png' }))
 app.use('/backCenter.png', serveStatic({ path: './image/backCenter.png' }))
 app.use('/mapmune.png', serveStatic({ path: './image/mapmune.png' }))
 app.use('/mapmuneclose.png', serveStatic({ path: './image/mapmuneclose.png' }))
+app.use('/line.png', serveStatic({ path: './image/line.png' }))
+app.use('/circle.png', serveStatic({ path: './image/circle.png' }))
+app.use('/polygon.png', serveStatic({ path: './image/polygon.png' }))
+app.use('/dustBox.png', serveStatic({ path: './image/dustBox.png' }))
 
-app.use('/*/*', serveStatic({ path: './html/map.html' }))
+// app.use('/index/', serveStatic({ path: './spa/index.html' }))
+// app.get('/assets/*', serveStatic({ path: './spa/assets/index-5b362f4e.js' }))
+app.get('/assets/*', async (c, next) => {
+  const filePath = c.req.path.replace(/^\/assets\//, '')
+  console.log(filePath)
+  return serveStatic({ path: './spa/assets/' + filePath })(c, next)
+})
+
+app.use('/*/*', serveStatic({ path: './html/map/html' }))
+app.use('/*', serveStatic({ path: './spa/index.html' }))
 
 //上記以外のURLの時はエラー
 // app.get('/', (c) => c.redirect('/benri/notAccess'))

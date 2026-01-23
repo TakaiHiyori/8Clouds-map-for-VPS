@@ -20,7 +20,7 @@ valid BOOLEAN NOT NULL,
 foreign key ("domain") references domain(id)
 );
 
-SELECT * FROM configs;
+SELECT * FROM benri_map_configs;
 
 ALTER TABLE configs ALTER COLUMN mapTitle TYPE VARCHAR(100);
 ALTER TABLE configs ALTER COLUMN openURL TYPE VARCHAR(100);
@@ -67,3 +67,8 @@ ALTER TABLE configs ALTER COLUMN creater TYPE INT
  END;
  ALTER TABLE configs ALTER COLUMN creater SET NOT NULL;
  DELETE FROM configs;
+ 
+ ALTER TABLE configs RENAME TO benri_map_configs;
+
+UPDATE benri_map_configs SET map_tile = 'open_street_map' WHERE map_tile = 'OpenStreetMap';
+UPDATE benri_map_configs SET map_tile = 'digital_topographic_map' WHERE map_tile = '電子地形図';

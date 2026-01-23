@@ -1,0 +1,166 @@
+
+import { Hono } from 'hono';
+import pool from '../db';
+
+const app = new Hono()
+
+app.get('/getAllConfig', async (c) => {
+  c.header('Content-Type', 'application/json; charset=utf-8');
+  try {
+    const domain = c.req.query('domain')
+    const userId = c.req.query('user')
+    // const body = await c.req.json();
+    console.log('getAllConfig実行:', domain, userId);
+
+    // ドメインを取得
+    const getDomain = await pool.query(
+      `SELECT * FROM benri_map.benri_map_domain WHERE domain_text = $1`,
+      [domain]
+    )
+
+    const config: { [key: string]: any } = {
+      domainId: getDomain.rows[0].id,
+      domain: getDomain.rows[0].domain,
+      domainText: getDomain.rows[0].domain_text,
+      openDomain: getDomain.rows[0].open_domain_text
+    }
+
+    // オプションを取得
+    const getOptions = await pool.query(
+      `SELECT * FROM benri_map.benri_map_options WHERE domain = $1`,
+      [getDomain.rows[0].id]
+    )
+
+    for (let i = 0; i < getOptions.rows.length; i++) {
+      config[getOptions.rows[i].option] = getOptions.rows[i].valid
+    }
+
+    // 設定を取得
+    const getConfigs = await pool.query(
+      `SELECT
+      bc.id,
+      bc.map_title,
+      bc.open_url,
+      bc.app_id,
+      bc.token,
+      bc.center_lat,
+      bc.center_lng,
+      bc.marker,
+      bc.name,
+      bc.latitude,
+      bc.longitude,
+      bc.group,
+      bc.color,
+      bc.map_tile,
+      bc.add_image,
+      bc.creater,
+      bc.valid
+      FROM benri_map.benri_map_configs bc
+      JOIN benri_map.benri_map_show_users bsu ON bc.id = bsu.config
+      WHERE bc.domain = $1 AND bsu.user = $2 AND bsu.set_config = true ORDER BY bc.id asc`,
+      [getDomain.rows[0].id, userId]
+    );
+
+    // 取得した設定の数ループ
+    for (let i = 0; i < getConfigs.rows.length; i++) {
+      const getConfig = getConfigs.rows[i]
+
+      config[getConfig.id] = {
+        id: getConfig.id,
+        mapTitle: getConfig.map_title,
+        openURL: getConfig.open_url,
+        appId: getConfig.app_id,
+        token: getConfig.token,
+        centerLat: getConfig.center_lat,
+        centerLng: getConfig.center_lng,
+        marker: getConfig.marker,
+        name: getConfig.name,
+        latitude: getConfig.latitude,
+        longitude: getConfig.longitude,
+        group: getConfig.group,
+        color: getConfig.color,
+        addImage: JSON.parse(getConfig.add_image),
+        mapTile: getConfig.map_tile,
+        creater: getConfig.creater,
+        valid: getConfig.valid
+      }
+
+      // 色の設定を取得
+      const getColors = await pool.query(
+        `SELECT * FROM benri_map.benri_map_colors WHERE config = $1`,
+        [getConfig.id]
+      )
+
+      config[getConfig.id]['change_color_row_num'] = getColors.rows.length;
+      for (let j = 0; j < getColors.rows.length; j++) {
+        const getColor = getColors.rows[j]
+        config[getConfig.id]['change_color_row' + (j + 1)] = {
+          option: getColor.text,
+          color: getColor.color,
+          icon: getColor.icon,
+          iconColor: getColor.icon_color,
+        }
+      }
+
+      // ポップアップの設定を取得
+      const getPopups = await pool.query(
+        `SELECT * FROM benri_map.benri_map_popups WHERE config = $1`,
+        [getConfig.id]
+      )
+
+      config[getConfig.id]['popup_row_num'] = getPopups.rows.length;
+      for (let j = 0; j < getPopups.rows.length; j++) {
+        const getPopup = getPopups.rows[j]
+        config[getConfig.id]['popup_row' + (j + 1)] = {
+          popupField: getPopup.field,
+          popupFieldName: getPopup.label
+        }
+      }
+
+      const getNarrows = await pool.query(
+        `SELECT * FROM benri_map.benri_map_conditions WHERE config = $1`,
+        [getConfig.id]
+      )
+
+      config[getConfig.id]['narrow_row_number'] = getNarrows.rows.length;
+      for (let j = 0; j < getNarrows.rows.length; j++) {
+        const getNarrow = getNarrows.rows[j]
+        config[getConfig.id]['narrow_row' + (j + 1)] = {
+          field: getNarrow.field,
+          condition: getNarrow.condition,
+          value: JSON.parse(getNarrow.value),
+          andor: getNarrow.andor
+        }
+      }
+
+      const showUsers = await pool.query(
+        `SELECT *
+        FROM benri_map.benri_map_show_users bsu JOIN benri_map.benri_map_users bu ON bsu.user = bu.id
+         WHERE config = $1 ORDER BY bsu.id asc`,
+        [getConfig.id]
+      )
+
+      config[getConfig.id]['users_row_number'] = showUsers.rows.length;
+      for (let j = 0; j < showUsers.rows.length; j++) {
+        const showUser = showUsers.rows[j]
+        config[getConfig.id]['user_row' + (j + 1)] = {
+          user: showUser.user,
+          edit: showUser.edit,
+          create: showUser.create,
+          setConfig: showUser.set_config,
+          authority: showUser.authority
+        }
+      }
+    }
+
+    return c.json(config)
+  } catch (error) {
+    console.error('getAllConfigエラー:', error);
+    return c.json({
+      success: false,
+      message: 'サーバーエラーが発生しました'
+    }, 500);
+  }
+})
+
+export default app;

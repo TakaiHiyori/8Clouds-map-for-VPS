@@ -72,6 +72,7 @@ function checkTableRowNum(num) {
  */
 export async function possibleShowUsers(configs, users, loginUser, key) {
     const config = configs[key]
+    console.log(config)
     const domain = configs.domainId
     $('#map_name').text(config.mapTitle + 'ユーザー設定');
 
@@ -94,46 +95,42 @@ export async function possibleShowUsers(configs, users, loginUser, key) {
 
     if (config.users_row_number >= 2) {
         //マップに権限のあるユーザーが2人以上の時
-        for (let i = 2; i <= config.users_row_number; i++) {
-            //選択欄を複製
-            const num = $('#show_map_users > tr').length;
-            const clone = $('#show_map_users > tr').eq(0).clone(true)
-            //チェックボックスのidとlabelのforを変更する
-            clone.find('input[name="show-map-authority"]#show_map_authority-0').next().attr('for', 'show_map_authority-0-' + (num - 1))
-            clone.find('input[name="show-map-authority"]#show_map_authority-0').attr('id', 'show_map_authority-0-' + (num - 1))
-            clone.find('input[name="show-map-authority"]#show_map_authority-1').next().attr('for', 'show_map_authority-1-' + (num - 1))
-            clone.find('input[name="show-map-authority"]#show_map_authority-1').attr('id', 'show_map_authority-1-' + (num - 1))
-            clone.find('input[name="show-map-authority"]#show_map_authority-2').next().attr('for', 'show_map_authority-2-' + (num - 1))
-            clone.find('input[name="show-map-authority"]#show_map_authority-2').attr('id', 'show_map_authority-2-' + (num - 1))
-            clone.insertAfter($('#show_map_users > tr').eq(num - 1));
-            $('#show_map_users > tr:eq(' + num + ') .login-user-id').val(config['user_row' + i].user);
+        for (let i = 1; i <= config.users_row_number; i++) {
+            if (config['user_row' + i].authority !== 0) {
 
-            for (let j = 0; j < $(' .login-user-id').length; j++) {
-                //他の選択肢から既に選択されているユーザーを表示しないようにする
-                if ($('.login-user-id').eq(j).val() !== String(config['user_row' + i].user)) {
-                    $(`.login-user-id:eq(${j}) option[value="${config['user_row' + i].user}"]`).css('display', 'none');
+                //選択欄を複製
+                const num = $('#show_map_users > tr').length;
+                const clone = $('#show_map_users > tr').eq(0).clone(true)
+                //チェックボックスのidとlabelのforを変更する
+                clone.find('input[name="show-map-authority"]#show_map_authority-0').next().attr('for', 'show_map_authority-0-' + (num - 1))
+                clone.find('input[name="show-map-authority"]#show_map_authority-0').attr('id', 'show_map_authority-0-' + (num - 1))
+                clone.find('input[name="show-map-authority"]#show_map_authority-1').next().attr('for', 'show_map_authority-1-' + (num - 1))
+                clone.find('input[name="show-map-authority"]#show_map_authority-1').attr('id', 'show_map_authority-1-' + (num - 1))
+                clone.find('input[name="show-map-authority"]#show_map_authority-2').next().attr('for', 'show_map_authority-2-' + (num - 1))
+                clone.find('input[name="show-map-authority"]#show_map_authority-2').attr('id', 'show_map_authority-2-' + (num - 1))
+                clone.insertAfter($('#show_map_users > tr').eq(num - 1));
+                $('#show_map_users > tr:eq(' + num + ') .login-user-id').val(config['user_row' + i].user);
+
+                for (let j = 0; j < $(' .login-user-id').length; j++) {
+                    //他の選択肢から既に選択されているユーザーを表示しないようにする
+                    if ($('.login-user-id').eq(j).val() !== String(config['user_row' + i].user)) {
+                        $(`.login-user-id:eq(${j}) option[value="${config['user_row' + i].user}"]`).css('display', 'none');
+                    }
                 }
-            }
-
-            if (config['user_row' + i].edit) {
                 //編集権限があるとき、「ピンの編集」にチェックをつける
-                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-0-' + (num - 1)).attr('checked', true).prop('checked', true).change();
-            }
-            if (config['user_row' + i].create) {
+                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-0-' + (num - 1)).attr('checked', config['user_row' + i].edit).prop('checked', config['user_row' + i].edit).change();
                 //追加権限ができる時、「ピンの追加」にチェックをつける
-                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-1-' + (num - 1)).attr('checked', true).prop('checked', true).change();
-            }
-            if (config['user_row' + i].setConfig) {
+                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-1-' + (num - 1)).attr('checked', config['user_row' + i].create).prop('checked', config['user_row' + i].create).change();
                 //マップを設定する権限があるとき、「マップの設定」にチェックをつける
-                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-2-' + (num - 1)).attr('checked', true).prop('checked', true).change();
-            }
+                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-2-' + (num - 1)).attr('checked', config['user_row' + i].setConfig).prop('checked', config['user_row' + i].setConfig).change();
 
-            if (config['user_row' + i].user === config.creater) {
-                $('#show_map_users > tr:eq(' + num + ') .remove').attr('id', 'creater');
-                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-2-' + (num - 1)).attr('disabled', true);
-                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-1-' + (num - 1)).attr('disabled', true);
-                $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-0-' + (num - 1)).attr('disabled', true);
-                $('#show_map_users > tr:eq(' + num + ') .login-user-id').attr('disabled', true).css('background-color', '#dddddd');
+                if (config['user_row' + i].user === config.creater) {
+                    $('#show_map_users > tr:eq(' + num + ') .remove').attr('id', 'creater');
+                    $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-2-' + (num - 1)).attr('disabled', true);
+                    $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-1-' + (num - 1)).attr('disabled', true);
+                    $('#show_map_users > tr:eq(' + num + ') input[name="show-map-authority"]#show_map_authority-0-' + (num - 1)).attr('disabled', true);
+                    $('#show_map_users > tr:eq(' + num + ') .login-user-id').attr('disabled', true).css('background-color', '#dddddd');
+                }
             }
         }
     } else {

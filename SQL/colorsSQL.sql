@@ -19,3 +19,5 @@ ALTER TABLE colors ALTER COLUMN iconColor TYPE VARCHAR(50);
 ALTER TABLE colors RENAME COLUMN iconColor TO icon_color;
 
 DELETE FROM colors;
+
+ALTER TABLE colors RENAME TO benri_map_colors;

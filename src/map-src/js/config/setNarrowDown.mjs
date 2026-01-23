@@ -243,7 +243,7 @@ const defaultNarrowDown = (CONF) => {
 
         setTimeout(() => {
             $(`.narrow-down-configs:eq(${i}) .condition`).val(condition.condition);
-            $(`.narrow-down-configs:eq(${i}) .condition-value`).val(JSON.parse(condition.value)).change();
+            $(`.narrow-down-configs:eq(${i}) .condition-value`).val(condition.value).change();
         }, 500)
     }
 

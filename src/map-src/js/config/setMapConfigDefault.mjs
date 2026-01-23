@@ -34,7 +34,7 @@ export const setDefault = (config, key, fieldResp) => {
         $('#config_name').val(CONF.mapTitle).attr('disabled', true)
         $('#open_url_name').val(CONF.openURL)
         if (CONF.openURL !== '') {
-            $('#open_url').text(`http://133.167.91.11/benri/${config.openDomain}/${CONF.openURL}`).attr({ 'href': `http://133.167.91.11/benri/${config.openDomain}/${CONF.openURL}`, 'target': '_blank' })
+            $('#open_url').text(`https://solution.8clouds.co.jp/benri/${config.openDomain}/${CONF.openURL}`).attr({ 'href': `https://solution.8clouds.co.jp/benri/${config.openDomain}/${CONF.openURL}`, 'target': '_blank' })
         }
 
         $('#appId').val(CONF.appId)

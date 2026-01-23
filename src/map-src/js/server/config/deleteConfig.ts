@@ -10,23 +10,23 @@ app.post('/deleteConfig', async (c) => {
     const body = await c.req.json();
     console.log('deleteConfig実行:', body);
     await pool.query(
-      `DELETE FROM colors WHERE config = $1`,
+      `DELETE FROM benri_map.benri_map_colors WHERE config = $1`,
       [body.id]
     )
     await pool.query(
-      `DELETE FROM popups WHERE config = $1`,
+      `DELETE FROM benri_map.benri_map_popups WHERE config = $1`,
       [body.id]
     )
     await pool.query(
-      `DELETE FROM mapShowUsers WHERE config = $1`,
+      `DELETE FROM benri_map.benri_map_show_users WHERE config = $1`,
       [body.id]
     )
     await pool.query(
-      `DELETE FROM narrowDown WHERE config = $1`,
+      `DELETE FROM benri_map.benri_map_conditions WHERE config = $1`,
       [body.id]
     )
     await pool.query(
-      `DELETE FROM configs WHERE id = $1`,
+      `DELETE FROM benri_map.benri_map_configs WHERE id = $1`,
       [body.id]
     )
 

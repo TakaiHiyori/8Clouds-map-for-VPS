@@ -12,3 +12,5 @@ ALTER TABLE narrowDown ADD COLUMN condition VARCHAR(50);
 SELECT * FROM narrowDown;
 
 DELETE FROM narrowDown;
+
+ALTER TABLE narrowDown RENAME TO benri_map_conditions;

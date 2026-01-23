@@ -1,6 +1,8 @@
+
+import $ from "jquery"
 import './index.js'
 
-import { domainText, localStorageKey } from "./map.mjs";
+import { localStorageKey } from "./map.mjs";
 
 $('body').off('click').click((e) => {
     if (!e.originalEvent || e.originalEvent.target.tagName === 'BUTTON') {

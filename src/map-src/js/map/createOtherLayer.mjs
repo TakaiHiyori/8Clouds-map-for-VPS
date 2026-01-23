@@ -1,9 +1,14 @@
+import $ from "jquery"
+import { DateTime } from "luxon"
+
 import { getBoundingBox, getMapViewDistanceKm } from "./coordinate.mjs";
 // import { data } from "../kintoneAPI.mjs";
 import { domainText } from "./map.mjs";
 import { checkRecord } from './marker.mjs';
 
 let showMarkers = {};
+let markerLayers = {}; //表示するマーカーを保存する
+
 /**
  * hsvを16進数のカラーコードに直す
  * @param {*} h
@@ -54,6 +59,48 @@ function componentToHex(c) {
     const hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
+
+const createOtherMarker = async (record, config, latLngBox, key, color, map) => {
+    if (!checkRecord(record, config)) {
+        //絞り込み条件に該当しないものは処理を終える
+        return {};
+    }
+    const popup = await createPopup(record, config)
+    const marker = L.circleMarker([record[config.latitude].value, record[config.longitude].value],
+        {
+            color: '#ffffff00',
+            fillColor: color,
+            fillOpacity: 1,
+            radius: 9,
+        });
+
+    //マーカーの名前を作成
+    const markerName = L.marker([record[config.latitude].value, record[config.longitude].value], {
+        icon: L.divIcon({
+            html: '<div class="marker-label" style="font-size: small">' + record[config.name].value + '</div>',
+            iconSize: [0, 0],
+            iconAnchor: [14, 26], // アイコンのアンカー位置
+            className: 'marker-title'
+        })
+    })
+
+    const inside = (latLngBox.minLat < Number(record[config.latitude].value) && latLngBox.maxLat > Number(record[config.latitude].value) &&
+        latLngBox.minLng < Number(record[config.longitude].value) && latLngBox.maxLng > Number(record[config.longitude].value))
+    if (inside) {
+        marker.addTo(map)
+        markerName.addTo(map)
+    }
+    markerLayers[key].push(marker);
+    markerLayers[key].push(markerName);
+    showMarkers[key].push(marker)
+    showMarkers[key].push(markerName)
+
+    const googleMap = `https://www.google.com/maps/search/${record[config.latitude].value},${record[config.longitude].value}/${record[config.latitude].value},${record[config.longitude].value},18.5z?entry=ttu&g_ep=EgoyMDI0MTExMi4wIKXMDSoASAFQAw%3D%3D`
+
+    marker.bindPopup(`<div>${popup}</div><a href="${googleMap}" target="_blank">グーグルマップに遷移する</a>`);
+
+}
+
 /**
  * ほかのマップに設定されているレイヤーを表示する
  * @param {object} config マップの設定
@@ -71,7 +118,6 @@ export const createOtherMapModal = async (config, otherLayer, map, configName) =
             showOtherLayers = { datetime: Number(Date.now()) };
         }
     }
-    let markerLayers = {}; //表示するマーカーを保存する
 
     const tableDiv = $('<div>').attr('class', 'other-layer-table-div');
     const tableDivClone1 = tableDiv.clone(true)
@@ -156,12 +202,15 @@ export const createOtherMapModal = async (config, otherLayer, map, configName) =
         }
         const showLayer = showOtherLayers[key]
         if (showLayer.showMap && $(`.select-options input#${key}`).length >= 1 && showLayer.configName === config[key].mapTitle) {
+            //「表示」状態で、マップの切り替えに入っていて、
             $(`.select-options input#${key}`).attr('checked', true).prop('checked', true).change();
 
-            const query = `${config[key].latitude} != "" and ${config[key].longitude} != ""`
+            console.log(config)
+            let query = `${config[key].latitude} != "" and ${config[key].longitude} != "" and
+                    (${config[key].latitude} > ${latLngBox.minLat} and ${config[key].latitude} < ${latLngBox.maxLat} and
+                     ${config[key].longitude} > ${latLngBox.minLng} and ${config[key].longitude} < ${latLngBox.maxLng})`
 
-            // const recordsResp = await data(config[key].appId, config[key].token, config.domain, query, config[key].id);
-            let recordsResps = await window.fetch("../kintone/getRecords", {
+            const recordsResps = await window.fetch("../kintone/getRecords", {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json"
@@ -170,62 +219,82 @@ export const createOtherMapModal = async (config, otherLayer, map, configName) =
             });
             const recordsResp = await recordsResps.json();
             console.log(recordsResp)
-            if (!recordsResp) {
+            if (!recordsResp.success) {
                 alert(`${config[key].mapTitle}の表示に失敗しました。`)
                 $(`.select-options input#${key}`).attr('checked', false).prop('checked', false).change();
                 showOtherLayers[key].showMap = false;
                 continue;
             }
 
+            const recordCounter = [0];
+            for (let i = 500; i < recordsResp.totalCount; i += 500) {
+                recordCounter.push(i);
+            }
+
             markerLayers[key] = [];
             showMarkers[key] = [];
-            recordsResp.forEach(async (records) => {
+            recordsResp.records.forEach(async (records) => {
                 records.forEach(async record => {
-                    if (!checkRecord(record, config[key])) {
-                        //絞り込み条件に該当しないものは処理を終える
-                        return {};
-                    }
-                    const popup = await createPopup(record, config[key])
-
-                    const marker = L.circleMarker([record[config[key].latitude].value, record[config[key].longitude].value],
-                        {
-                            color: '#ffffff00',
-                            fillColor: showLayer.color,
-                            fillOpacity: 1,
-                            radius: 9,
-                        });
-
-                    //マーカーの名前を作成
-                    const markerName = L.marker([record[config[key].latitude].value, record[config[key].longitude].value], {
-                        icon: L.divIcon({
-                            html: '<div class="marker-label" style="font-size: small">' + record[config[key].name].value + '</div>',
-                            iconSize: [0, 0],
-                            iconAnchor: [14, 26], // アイコンのアンカー位置
-                            className: 'marker-title'
-                        })
-                    })
-
-                    const inside = (latLngBox.minLat < Number(record[config[key].latitude].value) && latLngBox.maxLat > Number(record[config[key].latitude].value) &&
-                        latLngBox.minLng < Number(record[config[key].longitude].value) && latLngBox.maxLng > Number(record[config[key].longitude].value))
-                    if (inside) {
-                        marker.addTo(map)
-                        markerName.addTo(map)
-                    }
-                    markerLayers[key].push(marker);
-                    markerLayers[key].push(markerName);
-                    showMarkers[key].push(marker)
-                    showMarkers[key].push(markerName)
-                    const googleMap = `https://www.google.com/maps/search/${record[config[key].latitude].value},${record[config[key].longitude].value}/${record[config[key].latitude].value},${record[config[key].longitude].value},18.5z?entry=ttu&g_ep=EgoyMDI0MTExMi4wIKXMDSoASAFQAw%3D%3D`
-
-                    marker.bindPopup(`<div>${popup}</div><a href="${googleMap}" target="_blank">グーグルマップに遷移する</a>`);
+                    createOtherMarker(record, config[key], latLngBox, key, showOtherLayers[key].color, map,)
                 })
+            })
+
+            //==========================================================範囲外のレコードを取得する===================================================//
+            let outsideRecordsQuery = `${config[key].latitude} != "" and ${config[key].longitude} != "" and
+                    (${config[key].latitude} < ${latLngBox.minLat} or ${config[key].latitude} > ${latLngBox.maxLat} or
+                     ${config[key].longitude} < ${latLngBox.minLng} or ${config[key].longitude} > ${latLngBox.maxLng})`
+            recordCounter.forEach(async (i, index) => {
+                if (i > 10000) {
+                    return;
+                }
+                const get500Query = outsideRecordsQuery + ` limit 500 offset ${i}`;
+                const body = {
+                    app: config[key].appId,
+                    query: get500Query
+                }
+                await fetch(`../kintone/getNewRecords`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ domain: config.domain, token: config[key].token, body: body })
+                })
+                    .then(async (response) => {
+                        const records = await response.json();
+                        console.log(records)
+                        records.records.forEach(async (record) => {
+                            createOtherMarker(record, config[key], latLngBox, key, showOtherLayers[key].color, map)
+                        })
+
+                        if (recordCounter[index + 1] > 10000) {
+                            //次のレコードから10000件以上の時、カーソルを使って取得を行う
+                            outsideRecordsQuery += ` and $id > ${records.records[records.records.length - 1].$id.value}`
+                            recordsResps = await window.fetch("../kintone/getRecords", {
+                                method: 'POST',
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ app: config[key].appId, token: config[key].token, domain: domain, query: query })
+                            })
+                                .then(async (recordsResponse) => {
+                                    let getOuterRecordResp = await recordsResponse.json();
+                                    const outerRecordResp = getOuterRecordResp.records
+
+                                    outerRecordResp.forEach(async (records) => {
+                                        records.forEach(async (record) => {
+                                            createOtherMarker(record, config[key], latLngBox, key, showOtherLayers[key].color, map)
+                                        })
+                                    })
+                                });
+                        }
+                    })
             })
         } else if (!showLayer.showMap && $(`.select-options input#${key}`).length >= 1 && showLayer.configName === config[key].mapTitle) {
             $(`.select-options input#${key}`).parent().next().children('input').val(showLayer.color);
         }
     }
 
-    //表示ボタンがクリックされたとき
+    //=========================================表示ボタンがクリックされたとき========================================================================//
     $('#map-layers .select-options #show_other_layer').off('click').click(async () => {
         $('.loading-content').attr('class', 'loading-content').css('background-color', '#ffffff6c');
 
@@ -274,10 +343,12 @@ export const createOtherMapModal = async (config, otherLayer, map, configName) =
                     showMarkers[value].push(marker)
                 })
             } else {
+                console.log(config[value])
                 //始めて表示するマーカーの場合、レコードの取得を行いマーカーを表示する
-                const query = `${config[value].latitude} != "" and ${config[value].longitude} != ""`
+                let query = `${config[value].latitude} != "" and ${config[value].longitude} != "" and
+                    (${config[value].latitude} > ${latLngBox.minLat} and ${config[value].latitude} < ${latLngBox.maxLat} and
+                     ${config[value].longitude} > ${latLngBox.minLng} and ${config[value].longitude} < ${latLngBox.maxLng})`
 
-                // const recordsResp = await data(config[value].appId, config[value].token, config.domain, query, config[value].id);
                 let recordsResps = await window.fetch("../kintone/getRecords", {
                     method: 'POST',
                     headers: {
@@ -288,54 +359,74 @@ export const createOtherMapModal = async (config, otherLayer, map, configName) =
                 const recordsResp = await recordsResps.json();
                 console.log(recordsResp)
 
-                if (!recordsResp) {
+                if (!recordsResp.success) {
                     alert(`${config[value].mapTitle}の表示に失敗しました。`)
                     values.eq(i).attr('checked', false).prop('checked', false).change();
                     showOtherLayers[value].showMap = false;
                     continue;
                 }
 
+                const recordCounter = [0];
+                for (let i = 500; i < recordsResp.totalCount; i += 500) {
+                    recordCounter.push(i);
+                }
+
                 markerLayers[value] = [];
-                recordsResp.forEach(async (records) => {
+                recordsResp.records.forEach(async (records) => {
                     records.forEach(async record => {
-                        if (!checkRecord(record, config[value])) {
-                            //絞り込み条件に該当しないものは処理を終える
-                            return {};
-                        }
-                        const popup = await createPopup(record, config[value])
-                        const marker = L.circleMarker([record[config[value].latitude].value, record[config[value].longitude].value],
-                            {
-                                color: '#ffffff00',
-                                fillColor: color,
-                                fillOpacity: 1,
-                                radius: 9,
-                            });
-
-                        //マーカーの名前を作成
-                        const markerName = L.marker([record[config[value].latitude].value, record[config[value].longitude].value], {
-                            icon: L.divIcon({
-                                html: '<div class="marker-label" style="font-size: small">' + record[config[value].name].value + '</div>',
-                                iconSize: [0, 0],
-                                iconAnchor: [14, 26], // アイコンのアンカー位置
-                                className: 'marker-title'
-                            })
-                        })
-
-                        const inside = (latLngBox.minLat < Number(record[config[value].latitude].value) && latLngBox.maxLat > Number(record[config[value].latitude].value) &&
-                            latLngBox.minLng < Number(record[config[value].longitude].value) && latLngBox.maxLng > Number(record[config[value].longitude].value))
-                        if (inside) {
-                            marker.addTo(map)
-                            markerName.addTo(map)
-                        }
-                        markerLayers[value].push(marker);
-                        markerLayers[value].push(markerName);
-                        showMarkers[value].push(marker)
-                        showMarkers[value].push(markerName)
-
-                        const googleMap = `https://www.google.com/maps/search/${record[config[value].latitude].value},${record[config[value].longitude].value}/${record[config[value].latitude].value},${record[config[value].longitude].value},18.5z?entry=ttu&g_ep=EgoyMDI0MTExMi4wIKXMDSoASAFQAw%3D%3D`
-
-                        marker.bindPopup(`<div>${popup}</div><a href="${googleMap}" target="_blank">グーグルマップに遷移する</a>`);
+                        createOtherMarker(record, config[value], latLngBox, value, color, map)
                     })
+                })
+
+                //==========================================================範囲外のレコードを取得する===================================================//
+                let outsideRecordsQuery = `${config[value].latitude} != "" and ${config[value].longitude} != "" and
+                    (${config[value].latitude} < ${latLngBox.minLat} or ${config[value].latitude} > ${latLngBox.maxLat} or
+                     ${config[value].longitude} < ${latLngBox.minLng} or ${config[value].longitude} > ${latLngBox.maxLng})`
+                recordCounter.forEach(async (i, index) => {
+                    if (i > 10000) {
+                        return;
+                    }
+                    const get500Query = outsideRecordsQuery + ` limit 500 offset ${i}`;
+                    const body = {
+                        app: config[value].appId,
+                        query: get500Query
+                    }
+                    await fetch(`../kintone/getNewRecords`, {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ domain: config.domain, token: config[value].token, body: body })
+                    })
+                        .then(async (response) => {
+                            const records = await response.json();
+                            console.log(records)
+                            records.records.forEach(async (record) => {
+                                createOtherMarker(record, config[value], latLngBox, value, color, map)
+                            })
+
+                            if (recordCounter[index + 1] > 10000) {
+                                //次のレコードから10000件以上の時、カーソルを使って取得を行う
+                                outsideRecordsQuery += ` and $id > ${records.records[records.records.length - 1].$id.value}`
+                                recordsResps = await window.fetch("../kintone/getRecords", {
+                                    method: 'POST',
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({ app: config[value].appId, token: config[value].token, domain: domain, query: query })
+                                })
+                                    .then(async (recordsResponse) => {
+                                        let getOuterRecordResp = await recordsResponse.json();
+                                        const outerRecordResp = getOuterRecordResp.records
+
+                                        outerRecordResp.forEach(async (records) => {
+                                            records.forEach(async (record) => {
+                                                createOtherMarker(record, config[value], latLngBox, value, color, map)
+                                            })
+                                        })
+                                    });
+                            }
+                        })
                 })
             }
         }
@@ -439,7 +530,7 @@ function createPopup(record, config) {
             case 'UPDATED_TIME': //更新日時
                 let datetime = '';
                 if (record[config['popup_row' + j].popupField].value !== '') {
-                    datetime = luxon.DateTime.fromISO(record[config['popup_row' + j].popupField].value).toFormat('yyyy/MM/dd HH:mm');
+                    datetime = DateTime.fromISO(record[config['popup_row' + j].popupField].value).toFormat('yyyy/MM/dd HH:mm');
                 }
 
                 tbody += `<td>

@@ -5,7 +5,7 @@ domainText char(50) NOT NULL,
 openDomeinText char(60) NOT NULL
 );
 
-SELECT * FROM domain;
+SELECT * FROM benri_map_domain;
 
 INSERT INTO "domain" ("domain", domainText, openDomainText) VALUES ('5uz7f776jav6', '8CloudsMap', '8CloudsPablicMap');
 
@@ -18,3 +18,7 @@ ALTER TABLE "domain" ALTER COLUMN openDomainText TYPE VARCHAR(60);
 ALTER TABLE "domain" RENAME COLUMN domainText TO domain_text;
 ALTER TABLE "domain" RENAME COLUMN openDomainText TO open_domain_text;
 UPDATE "domain" SET open_domain_text = '8CloudsPublicMap';
+
+ALTER TABLE "domain" RENAME TO benri_map_domain;
+
+UPDATE benri_map_domain SET domain_text = 'solution.8clouds.co.jp' WHERE id = 1;

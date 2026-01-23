@@ -117,7 +117,7 @@ button#logput,
 }
 
 /* ポップアップ */
-.leaflet-popup-content {
+.leaflet-popup-content:not(:has(.draw-shape)) {
   width: 330px !important;
   max-height: 385px;
 }
@@ -304,12 +304,12 @@ details {
 
 #image_modal div#modal_header {
   margin: 0px 10px 0px 10px;
-  height: 46px;
+  height: 12px;
   justify-items: anchor-center;
 }
 
 #image_modal div#modal_body {
-  height: calc(100% - 104px);
+  height: calc(100% - 70px);
   margin: 15px 10px 0px 0px;
   overflow-y: auto;
   /* max-height: 48vh; */
@@ -317,8 +317,9 @@ details {
 
 #image_modal .image-bodys {
   margin-bottom: 12px;
-  display: flex;
+  /* display: flex; */
   align-items: center;
+  border-top: 1px solid;
 }
 
 #image_modal .image-bodys img {
@@ -351,6 +352,11 @@ details {
 #image_modal #modal_footer button {
   min-width: 153px;
   height: 43px;
+}
+
+#image_modal #modal_footer button:disabled {
+  background-color: color-mix(in srgb, currentColor, black 35%);
+  box-shadow: none;
 }
 
 #image_modal #add_image_button {
@@ -394,13 +400,16 @@ div#menu {
 }
 
 div#menu button {
-  /* padding: 6px; */
-  /* height: 100%; */
   border: 1px solid;
   border-radius: 3px;
   min-width: 40px;
   height: 40px;
-  /* font-size: medium; */
+  cursor: pointer;
+}
+
+div#menu button:hover {
+  background-color: color-mix(in srgb, currentColor, white 75%);
+  /* 明度を下げて濃くする */
 }
 
 /* レイヤーを重ねる設定モーダル */
@@ -498,6 +507,13 @@ button#show_other_layer {
 
 div#search_modal_body {
   margin: 5px 10px 0px 0px;
+}
+
+div#search_text {
+  margin-left: 10px;
+  font-size: 12px;
+  color: red;
+  margin-top: 5px;
 }
 
 div#first_search {
@@ -684,6 +700,11 @@ div#drawing_menu button {
   border-color: #ebebeb;
 }
 
+div#drawing_menu button img {
+  width: 25px !important;
+  height: 25px;
+}
+
 div#draw_menu_header {
   margin-top: 10px;
   display: flex;
@@ -735,6 +756,19 @@ input.draw-area-color {
 input.radius {
   width: 80px;
   height: 20px;
+}
+
+/* 詳細のモーダル */
+
+.kintone-fields-block {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.kintone-field {
+  background-color: #f9f9f9;
+  border: 1px solid #dfdfdf;
+  padding-left: 10px;
 }
 
 @media (hover: hover) and (pointer: fine) {

@@ -16,3 +16,5 @@ ALTER TABLE mapShowUsers RENAME COLUMN setConfig TO set_config;
 INSERT INTO mapShowUsers (config, "user", edit, "create", set_config) VALUES (1, 1, true, true, true);
 
 DELETE FROM mapShowUsers;
+
+ALTER TABLE mapShowUsers RENAME TO benri_map_show_users;
