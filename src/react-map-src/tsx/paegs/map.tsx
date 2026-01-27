@@ -9,7 +9,8 @@ import {
   Menu,
   Link,
   MenuItem,
-  Portal
+  Portal,
+  Dialog
 } from '@chakra-ui/react';
 
 // import { MapContainer, TileLayer, useMap } from 'react-leaflet'
@@ -24,6 +25,8 @@ import { getCurrentPosition } from '../../ts/map/coordinate'
 import { showMap } from '../../ts/map/showMap'
 import { showModal } from '../../ts/map/showModal'
 import { judgClick } from '../../ts/map/judgClick'
+import { SearchAddress } from './map/serachAddress';
+import { SearchMarkers } from './map/sesarchMarkers'
 
 // import '../../css/51-modern-default.css';
 // import '../../css/loading.css';
@@ -57,7 +60,10 @@ let allDraws: any[] = []
 let allMarker: any = {};
 
 let hideMarkers: any[] = []
-let searchMarkers: any[] = [], leafletLayerHideMarkers: any[] = [];
+// let searchMarkers: any[] = [],
+let leafletLayerHideMarkers: any[] = [];
+
+let records: any[] = []
 
 let showMapInformation: any = {}
 
@@ -211,7 +217,8 @@ export const mapView: React.FC = () => {
             map = showMapResult.map
             currentTile = showMapResult.currentTile
             mapName = showMapResult.name;
-            layerMap = showMapResult.layerMap
+            layerMap = showMapResult.layerMap;
+            records = showMapResult.records
 
             document.getElementById(currentTile).disabled = true
           }
@@ -307,8 +314,43 @@ export const mapView: React.FC = () => {
         </Box>
       </div >
       <Box id="menu">
-        <Button size="md" bgColor="cyan.500" id="search_records" title="ピンを絞り込む" onClick={onClick}>絞込み</Button>
-        <Button size="md" bgColor="cyan.500" id="address_search" title="住所検索を行う" onClick={onClick}>住所</Button>
+        <Dialog.Root>
+          <Dialog.Trigger>
+            <Button size="md" bgColor="cyan.500" id="search_records" title="ピンを絞り込む" onClick={onClick}>絞込み</Button>
+          </Dialog.Trigger>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.CloseTrigger />
+              <Dialog.Header>
+                <Dialog.Title />
+              </Dialog.Header>
+              <Dialog.Body >
+                <SearchMarkers map={map} records={records} />
+              </Dialog.Body>
+              <Dialog.Footer />
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Dialog.Root>
+
+        <Dialog.Root>
+          <Dialog.Trigger>
+            <Button size="md" bgColor="cyan.500" id="address_search" title="住所検索を行う" onClick={onClick}>住所</Button>
+          </Dialog.Trigger>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.CloseTrigger />
+              <Dialog.Header>
+                <Dialog.Title />
+              </Dialog.Header>
+              <Dialog.Body >
+                <SearchAddress map={map} />
+              </Dialog.Body>
+              <Dialog.Footer />
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Dialog.Root>
         <Button size="md" bgColor="cyan.500" id="new_record" style={{ display: 'none' }} title="マップをクリックして登録する" onClick={onClick}>クリックで登録</Button>
         <Button size="md" bgColor="cyan.500" id="input_image_button" style={{ display: 'none' }} title="画像でピンを登録する" onClick={onClick}>画像で登録</Button>
         <Input type="file" id="input_image" style={{ display: 'none' }} multiple />
