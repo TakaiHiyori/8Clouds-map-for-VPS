@@ -2,7 +2,7 @@
 import { Hono } from 'hono';
 import pool from '../db';
 
-const app = new Hono()
+const app = new Hono();
 
 app.post('/checkLogin', async (c) => {
   c.header('Content-Type', 'application/json; charset=utf-8');
@@ -10,6 +10,7 @@ app.post('/checkLogin', async (c) => {
     const body = await c.req.json();
     console.log('checkLogin実行:', body);
 
+    // ドメインとユーザーID、パスワードでユーザーを検索
     const result = await pool.query(
       `SELECT users.* FROM benri_map.benri_map_users AS users
       JOIN benri_map.benri_map_domain AS domain ON users.domain = domain.id
@@ -18,16 +19,17 @@ app.post('/checkLogin', async (c) => {
     );
 
     if (result.rows.length > 0) {
-      console.log('ログイン成功:', result.rows[0]);
+      const user = result.rows[0];
+      console.log('ログイン成功:', user);
 
       const getShowMaps = await pool.query(
         `SELECT * FROM benri_map.benri_map_show_users WHERE "user" = $1`,
-        [result.rows[0].id]
+        [user.id]
       )
 
       return c.json({
         success: true,
-        user: result.rows[0],
+        user: user,
         showMaps: getShowMaps.rows
       });
     } else {

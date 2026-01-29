@@ -1,6 +1,6 @@
-
-import React, { useMemo, useState } from 'react';
-
+// 外部ライブラリ
+import React, { useState } from 'react';
+import { useForm, SubmitHandler, set } from 'react-hook-form';
 import {
   Button,
   Container,
@@ -11,151 +11,325 @@ import {
   Image,
   Box,
   PinInput,
-  Field
+  Field,
+  VStack,
+  Center,
+  Grid,
 } from '@chakra-ui/react';
 
+// 内部モジュール
 import {
   PasswordInput
 } from "../../../components/ui/password-input"
 
-import { LuUser } from "react-icons/lu"
-// import { PasswordInput } from "@/components/ui/password-input"
-import { useForm } from "react-hook-form"
-
+// 内部css
 import '../../css/login-style.css'
 
-import { onLoginSubmit } from '../../ts/login/login'
-import { postEmail } from '../../ts/login/postEmail'
+// 型定義
+interface FormValues {
+  userID: string;
+  password: string;
+}
+
+interface LoginConfig {
+  id: number;
+  userId: string;
+  userName: string;
+  authority: number;
+  loginTime?: number;
+  showMaps?: Array<number>;
+}
 
 export const showLoginPage: React.FC = () => {
   'use client'
 
-  const mapDomain = window.location.hostname
-  console.log(location.href.replace(/[^/]+$/, ''))
-
-  interface FormValues {
-    userID: string
-    password: string
-  }
-
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    formState: { errors, isSubmitting },
   } = useForm<FormValues>()
 
-  const [errorMessage, setDynamicText] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [code, setCode] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [mapDomain, setMapDomain] = useState<string>(window.location.hostname);
+  const [isAuth, setIsAuth] = useState<boolean>(false)
+  const [loginConfig, setLoginConfig] = useState<LoginConfig | null>(null);
+  const [isReSend, setIsReSend] = useState<boolean>(false);
+  const [canSubmit, setCanSubmit] = useState<boolean>(true);
 
-  const [text, setText] = useState<string | undefined>();
+  // ログインフォーム送信時の処理
+  const onLoginSubmit: SubmitHandler<FormValues> = async (data: FormValues) => {
+    // URLからドメインを取得してリクエストに含める
+    setMapDomain(window.location.hostname);
+    const payload = {
+      id: data.userID,
+      pass: data.password,
+      domain: mapDomain,
+    }
 
-  const onSubmit = handleSubmit(async (data) => {
-    console.log(data);
-    if (data.userID !== '' && data.password !== '') {
-      const result: any = await onLoginSubmit(data, mapDomain)
-      if (result.success) {
-        if (!result.email) {
-          const loginConfig = {
-            id: result.result.user.id,
-            userId: result.result.user.user_id,
-            userName: result.result.user.user_name,
-            authority: result.result.user.authority,
-            loginTime: Number(Date.now()),
-            showMaps: result.result.showMaps
-          }
+    try {
+      // ログイン認証
+      const response: any = await window.fetch("./checkLogin", {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // ログイン成功
+        setLoginConfig((prev) => ({
+          ...prev,
+          id: result.user.id,
+          userId: result.user.user_id,
+          userName: result.user.user_name,
+          authority: result.user.authority,
+          loginTime: Number(Date.now()),
+          showMaps: result.showMaps
+        }));
+
+        if (!result.user.email) {
+          // 2FA不要
+          setIsAuth(false);
           localStorage.setItem('map_' + mapDomain, JSON.stringify(loginConfig));
           window.location.href = location.href.replace(/[^/]+$/, ''); // 通常の遷移
         } else {
-          // certificationText = postEmail(getDomainText, result.result)
+          // 2FA必要
+          setErrorMessage('');
+          setEmail(result.user.email);
+
+          // メール送信
+          sendCode(result.user.id, result.user.email, mapDomain );
+          setIsAuth(true);
         }
-        window.location.href = location.href.replace(/[^/]+$/, '')
       } else {
-        setDynamicText(result.message)
+        // ログイン失敗
+        console.error("ログイン失敗:", result)
+        setErrorMessage('ログインIDまたはパスワードが違います。')
       }
-    } else if (data.userID === '' && data.password !== '') {
-      setDynamicText('ログインIDが未入力です。')
-    } else if (data.userID !== '' && data.password === '') {
-      setDynamicText('パスワードが未入力です。')
-    } else {
-      setDynamicText('ログインIDとパスワードを入力してください。')
+    } catch (error) {
+      console.error("Network Error:", error)
+      setErrorMessage("予期せぬエラーが発生しました。しばらくしてから再度お試しください。")
+    }    
+  };
+
+  // 認証コードフォーム送信時の処理
+  const onCertificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 6桁入力されているかチェック
+    if (code.length < 6) {
+      setErrorMessage("6桁の認証コードを入力してください。");
+      return;
     }
-  })
 
-  const onCertificationSubmit = handleSubmit(async (data) => { })
+    try {
+      // バックエンドへ送信 (例: /api/verify)
+      const response = await fetch("./verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: code,
+          email: email, 
+        }),
+      });
 
-  const [show, setShow] = useState<boolean>(false)
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // 成功後の処理（ダッシュボードへ遷移など）
+        localStorage.setItem('map_' + mapDomain, JSON.stringify(loginConfig));
+        window.location.href = location.href.replace(/[^/]+$/, '');
+      } else {
+        if (response.status === 422) {
+          setCanSubmit(false);
+        }
+        console.error("認証失敗:", result);
+        setErrorMessage(result.message || "認証に失敗しました。再度お試しください。");
+      }
+    } catch (error) {
+      console.error("認証失敗:", error);
+      setErrorMessage("予期せぬエラーが発生しました。しばらくしてから再度お試しください。");
+    }
+  };
+
+  // 認証コード送信処理
+  const sendCode = async (user_id: number | undefined = loginConfig?.id, targetEmail: string = email, domain: string = mapDomain): Promise<void> => {
+    setIsReSend(false);
+    setCanSubmit(true);
+    setCode("");
+    setErrorMessage("");
+    
+    const mailResponse = await fetch('./mail', {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ user_id: user_id, email: targetEmail, domain: domain })
+    })
+    setTimeout(() => {
+      setIsReSend(true);
+    }, 10000);
+    const mailResult = await mailResponse.json();
+  };
+
+  // 戻る処理
+  const handleBack = () => {
+    reset();
+    setErrorMessage("");
+    setIsAuth(false);
+  };
 
   return (
     <Container>
       <Flex height="100vh" alignItems="center" justifyContent="center">
         <Flex direction="column" background="gray.100" padding={12} rounded={6} w={'446px'}>
           <Image src="./8clouds_logo1.png"
-            // width="100px"
             alignSelf="center"
             w={100}
             marginBottom={5}
           />
-          <Box id="login_form">
+
+          {/* ログインフォーム */}
+          {!isAuth && <Box id="login_form" style={{ color: 'black' }}>
             <Heading mb={6} justifyContent="center">ログイン</Heading>
-            <form onSubmit={onSubmit}>
-              <Field.Root>
+            <VStack gap="4" as="form" onSubmit={handleSubmit(onLoginSubmit)} align="stretch">
+              
+              {/* ログインID Field */}
+              <Field.Root invalid={!!errors.userID}>
                 <Field.Label>ログインID</Field.Label>
                 <Input
                   type="text"
                   variant="outline"
                   id="user_name"
                   placeholder="ログインID"
-                  {...register("userID", { required: '入力が必須の項目です。' })}
-                  onChange={(e) => { setText(e.target.value) }}
-                // w={'355px'}
-                // helperText={text !== undefined && !text ? "入力してください" : ""}
-                // error={text !== undefined && !text}
+                  {...register("userID", { required: 'ログインIDを入力してください' })}
                 />
                 <Field.ErrorText>{errors.userID?.message}</Field.ErrorText>
               </Field.Root>
-              <Field.Root>
+
+              {/* パスワード Field */}
+              <Field.Root invalid={!!errors.password}>
                 <Field.Label>パスワード</Field.Label>
                 <PasswordInput
                   variant="outline"
-                  type={show ? 'text' : 'password'}
+                  type='password'
                   id="password"
                   placeholder="パスワード"
-                  {...register("password", { required: '入力が必須の項目です。' })}
-                  onChange={(e: any) => { setText(e.target.value) }}
-                // w={'355px'}
-                // helperText={text !== undefined && !text ? "入力してください" : ""}
-                // error={text !== undefined && !text}
+                  {...register("password", { required: 'パスワードを入力してください' })}
                 />
-                {/* <InputRightElement width={'4.5rem'}>
-                  <Button h='1.75rem' size='sm' onClick={() => setShow(!show)}>
-                    {show ? 'Hide' : 'Show'}
-                  </Button>
-                </InputRightElement> */}
                 <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
               </Field.Root>
-              <Text id="error_message" textStyle="xl" fontWeight="semibold" style={{ color: 'red' }}>{errorMessage}</Text>
-              <Button mb={6} bgColor="cyan.500" type="submit" id="login-button" color={'white'} _hover={{ bg: "cyan.700" }}>ログイン</Button>
-            </form>
-          </Box>
-          <Box id="certification_form" style={{ display: 'none' }}>
-            <form onSubmit={onCertificationSubmit}>
-              <Field.Root>
-                <Field.Label>ログインID</Field.Label>
-                <PinInput.Root type="alphanumeric">
-                  <PinInput.HiddenInput />
-                  <PinInput.Control>
-                    <PinInput.Input index={0} />
-                    <PinInput.Input index={1} />
-                    <PinInput.Input index={2} />
-                    <PinInput.Input index={3} />
-                    <PinInput.Input index={4} />
-                  </PinInput.Control>
-                </PinInput.Root>
-              </Field.Root>
-              <Text id="error_message" textStyle="xl" fontWeight="semibold">{errorMessage}</Text>
-              <Button mb={6} bgColor="cyan" type="submit" id="certification_button">認証</Button>
-              <Button mb={6} bgColor="cyan" type="button" id="resubmit" disabled>メールを再送信</Button>
-            </form>
-          </Box>
+
+              <Text 
+                id="error_message" 
+                color="fg.error"
+                fontSize="xs"
+                fontWeight="medium">
+                  {errorMessage}
+              </Text>
+              <Button 
+                mb={6} 
+                bgColor="cyan.500" 
+                type="submit" 
+                id="login-button" 
+                color={'white'} 
+                _hover={{ bg: "cyan.700" }}
+                loading={isSubmitting}>
+                ログイン
+              </Button>
+            </VStack>
+          </Box>}
+
+          {/* 認証コードフォーム */}
+          {isAuth && (
+            <Box id="certification_form" style={{ color: 'black' }}>
+              <Heading mb={6} justifyContent="center">2段階認証</Heading>
+
+              <Text mb={6} fontSize="sm" textAlign="center">
+                メールに送信された認証コードを入力してください。
+              </Text>
+              
+              <VStack gap="4" as="form" onSubmit={onCertificationSubmit} align="stretch">
+                
+                {/* 認証コード入力フィールド */}
+                <Field.Root>
+                  <Field.Label>認証コード（数字6桁）</Field.Label>
+                  <Center w="full">
+                    <PinInput.Root 
+                      type="numeric" 
+                      otp 
+                      onValueChange={(e) => setCode(e.value.join(""))}
+                    >
+                      <PinInput.HiddenInput />
+                      <PinInput.Control>
+                        {[0, 1, 2, 3, 4, 5].map((index) => (
+                          <PinInput.Input key={index} index={index} />
+                        ))}
+                      </PinInput.Control>
+                    </PinInput.Root>
+                  </Center>
+                </Field.Root>
+
+                {/* エラーメッセージ */}
+                <Text 
+                  id="error_message" 
+                  color="fg.error" 
+                  fontSize="xs" 
+                  fontWeight="medium"
+                  minH="1.5em"
+                >
+                  {errorMessage}
+                </Text>
+
+                {/* 認証ボタン */}
+                <Button 
+                  bgColor="cyan.500" 
+                  type="submit" 
+                  id="certification_button"
+                  color={'white'}
+                  _hover={{ bg: "cyan.700" }}
+                  disabled={!canSubmit}
+                >
+                  認証
+                </Button>
+
+                <Grid templateColumns="repeat(2, 1fr)" gap="3" pt={2}>
+                  <Button
+                    bgColor="gray.500"
+                    color="white"
+                    _hover={{ bg: "gray.400" }}
+                    onClick={() => handleBack()}
+                    w="full"
+                  >
+                    戻る
+                  </Button>
+
+                  <Button
+                    borderColor="cyan.500"
+                    bgColor="white"
+                    color="cyan.500"
+                    _hover={{ bg: "cyan.700", color: "white" }}
+                    type="button"
+                    id="resubmit"
+                    onClick={() => sendCode()}
+                    disabled={!isReSend}
+                    w="full"
+                  >
+                    メールを再送信
+                  </Button>
+                </Grid>
+               
+              </VStack>
+            </Box>
+          )}
+
         </Flex>
       </Flex>
     </Container >
