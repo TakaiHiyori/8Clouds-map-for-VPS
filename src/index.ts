@@ -36,7 +36,8 @@ import getRecord from './map-src/js/server/kintone/getRecord'
 import getNewRecords from './map-src/js/server/kintone/getNewRecords'
 import getFile from './map-src/js/server/kintone/getFile'
 
-import mail from './mail/mail'
+import mail from './map-src/js/server/login/mail'
+import verify from './map-src/js/server/login/verify'
 
 import getGeojson from './map-src/js/server/getSHPfile';
 import getLatlng from './map-src/js/server/getLatlng';
@@ -82,6 +83,7 @@ app.route('/', getNewRecords)
 app.route('/', getFile)
 
 app.route('/', mail)
+app.route('/', verify)
 
 app.route('/', getGeojson)
 app.route('/', getLatlng)
