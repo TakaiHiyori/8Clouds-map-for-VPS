@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import {
   PasswordInput
-} from "../../../components/ui/password-input"
+} from "../../../../components/ui/password-input"
 import { useForm } from 'react-hook-form';
 
 interface userFormValues {
@@ -18,11 +18,12 @@ interface userFormValues {
 
 export const UserEdit = ({ user, onSubmit, }: { user: any; onSubmit: (data: any) => void; }) => {
   const didInit = useRef(false);
+  console.log(user)
 
   const [checkUserId, setUserId] = useState<boolean>(user ? true : false);
   const [checkUserName, setUserName] = useState<boolean>(user ? true : false);
-  const [chackPassword, setPassword] = useState<boolean>(false)
-  const [chackPasswordConfirmation, setPasswordConfirmation] = useState<boolean>(false)
+  const [chackPassword, setPassword] = useState<boolean>(false);
+  const [chackPasswordConfirmation, setPasswordConfirmation] = useState<boolean>(false);
 
   const [changePassword, checkChangePassword] = useState<boolean>(false);
 

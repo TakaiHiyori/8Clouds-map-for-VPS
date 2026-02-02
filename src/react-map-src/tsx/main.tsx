@@ -4,7 +4,7 @@ import { defaultSystem } from '@chakra-ui/react';
 import { Provider } from "../../components/ui/provider";
 import { mapView as MapView } from './paegs/map';
 import { showLoginPage as ShowLoginPage } from './paegs/login';
-import { showConfig as ShowConfig } from './paegs/config';
+import { showConfig as ShowConfig } from './paegs/config/config';
 
 import { Container, Text, Spinner, Box, Center } from '@chakra-ui/react';
 

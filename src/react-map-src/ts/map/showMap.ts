@@ -172,7 +172,8 @@ export const showMap = async (config: any, showMap: string, login: boolean, show
     map: map,
     currentTile: currentTile,
     name: mapConfig.mapTitle,
-    layerMap: layerMap
+    layerMap: layerMap,
+    records: recordsResp
   };
 
 }

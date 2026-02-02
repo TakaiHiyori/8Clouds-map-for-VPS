@@ -20,7 +20,7 @@ app.post('/setConfig', async (c) => {
         ("domain", map_title, open_url, app_id, token, center_lat, center_lng, marker, name, latitude, longitude, "group", color, add_image, map_tile, creater, valid)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING id`,
-        [config.domain, config.mapTitle, config.openURL, config.appId, config.token, config.centerLat, config.centerLng, config.marker, config.name, config.latitude, config.longitude, config.group, config.color, config.addImage, config.mapTile, config.creater, true]
+        [config.domain, config.mapTitle, config.openURL, Number(config.appId), config.token, Number(config.centerLat), Number(config.centerLng), config.marker, config.name, config.latitude, config.longitude, config.group, config.color, config.addImage, config.mapTile, config.creater, true]
       )
 
       const configId = setConfig.rows[0].id;
@@ -49,10 +49,10 @@ app.post('/setConfig', async (c) => {
       return c.json({ id: configId })
     } else {
       const setConfig = await pool.query(
-        `UPDATE benri_map.benri_map_configs SET map_title = $1, open_url = $2, app_id = $3, token = $4, center_lat = $5, center_lng = $6,
-        marker = $7, name = $8, latitude = $9, longitude = $10, "group" = $11, color = $12, add_image = $13, map_tile = $14
-        WHERE id = $15`,
-        [config.mapTitle, config.openURL, config.appId, config.token, config.centerLat, config.centerLng, config.marker, config.name, config.latitude, config.longitude, config.group, config.color, config.addImage, config.mapTile, body.id]
+        `UPDATE benri_map.benri_map_configs SET open_url = $1, app_id = $2, token = $3, center_lat = $4, center_lng = $5,
+        marker = $6, name = $7, latitude = $8, longitude = $9, "group" = $10, color = $11, add_image = $12, map_tile = $13
+        WHERE id = $14`,
+        [config.openURL, Number(config.appId), config.token, Number(config.centerLat), Number(config.centerLng), config.marker, config.name, config.latitude, config.longitude, config.group, config.color, config.addImage, config.mapTile, body.id]
       )
 
       await pool.query(
