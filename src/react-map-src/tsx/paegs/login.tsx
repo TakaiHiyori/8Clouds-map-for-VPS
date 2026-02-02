@@ -82,20 +82,23 @@ export const showLoginPage: React.FC = () => {
 
       if (response.ok && result.success) {
         // ログイン成功
-        setLoginConfig((prev) => ({
-          ...prev,
+        const loginCongfigValue: LoginConfig = {
           id: result.user.id,
           userId: result.user.user_id,
           userName: result.user.user_name,
           authority: result.user.authority,
           loginTime: Number(Date.now()),
           showMaps: result.showMaps
+        };
+        setLoginConfig((prev) => ({
+          ...prev,
+          ...loginCongfigValue
         }));
 
         if (!result.user.email) {
           // 2FA不要
           setIsAuth(false);
-          localStorage.setItem('map_' + mapDomain, JSON.stringify(loginConfig));
+          localStorage.setItem('map_' + mapDomain, JSON.stringify(loginCongfigValue));
           window.location.href = location.href.replace(/[^/]+$/, ''); // 通常の遷移
         } else {
           // 2FA必要
