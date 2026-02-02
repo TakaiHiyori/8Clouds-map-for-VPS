@@ -1,9 +1,9 @@
 import { Box, Button, Heading, Link } from '@chakra-ui/react';
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 
-import '../../css/config-style.css'
+import '../../../css/config-style.css'
 
-import { checkLogin } from '../../ts/checkLogin';
+import { checkLogin } from '../../../ts/checkLogin';
 // import { getUser } from '../../ts/user/getUser';
 // import { UserEdit } from './userEdit';
 import { MapConfigList } from './mapConfigList';
@@ -149,9 +149,12 @@ export const showConfig = () => {
 
                 {/* マップに戻る */}
                 <Box mt={8} pt={4} borderTop="1px solid" borderColor="gray.200">
-                  <Link as="a" color="blue.500" fontSize="sm" cursor="pointer" display="flex" alignItems="center" href={link}>
+                  <Button size="md" bgColor="white" w="full" p={2} mb={2} bg="gray.100" color="gray.700" borderRadius="md" onClick={() => { window.location.href = link }}>
+                    マップに戻る
+                  </Button>
+                  {/* <Link as="a" color="blue.500" fontSize="sm" cursor="pointer" display="flex" alignItems="center" href={link}>
                     ← マップに戻る
-                  </Link>
+                  </Link> */}
                 </Box>
               </Box>
 
@@ -183,16 +186,16 @@ export const showConfig = () => {
 
                 {/* マップに戻る */}
                 <Box mt={8} pt={4} borderTop="1px solid" borderColor="gray.200">
-                  <Link as="a" color="blue.500" fontSize="sm" cursor="pointer" display="flex" alignItems="center" href={link}>
-                    ← マップに戻る
-                  </Link>
+                  <Button size="md" bgColor="white" w="full" p={2} mb={2} bg="gray.100" color="gray.700" borderRadius="md" onClick={() => { window.location.href = link }}>
+                    マップに戻る
+                  </Button>
                 </Box>
               </Box>
 
               {/* 右側コンテンツ */}
               <Box flex={1} p={6} bg={'white'}>
                 < Box id='map_list'>
-                  <MapConfigList values={{ configs: config, users: users }} />
+                  <MapConfigList configs={config} users={users} loginUserInfo={result.loginUserInfomation} getConfig={(data: any) => { getConfigs(data) }} />
                 </Box>
               </Box>
             </Box>
@@ -216,9 +219,9 @@ export const showConfig = () => {
 
                 {/* マップに戻る */}
                 <Box mt={8} pt={4} borderTop="1px solid" borderColor="gray.200">
-                  <Link as="a" color="blue.500" fontSize="sm" cursor="pointer" display="flex" alignItems="center" href={link}>
-                    ← マップに戻る
-                  </Link>
+                  <Button size="md" bgColor="white" w="full" p={2} mb={2} bg="gray.100" color="gray.700" borderRadius="md" onClick={() => { window.location.href = link }}>
+                    マップに戻る
+                  </Button>
                 </Box>
               </Box>
 

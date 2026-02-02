@@ -103,7 +103,7 @@ export const showLoginPage: React.FC = () => {
           setEmail(result.user.email);
 
           // メール送信
-          sendCode(result.user.id, result.user.email, mapDomain );
+          sendCode(result.user.id, result.user.email, mapDomain);
           setIsAuth(true);
         }
       } else {
@@ -114,7 +114,7 @@ export const showLoginPage: React.FC = () => {
     } catch (error) {
       console.error("Network Error:", error)
       setErrorMessage("予期せぬエラーが発生しました。しばらくしてから再度お試しください。")
-    }    
+    }
   };
 
   // 認証コードフォーム送信時の処理
@@ -136,7 +136,7 @@ export const showLoginPage: React.FC = () => {
         },
         body: JSON.stringify({
           code: code,
-          email: email, 
+          email: email,
         }),
       });
 
@@ -165,13 +165,13 @@ export const showLoginPage: React.FC = () => {
     setCanSubmit(true);
     setCode("");
     setErrorMessage("");
-    
+
     const mailResponse = await fetch('./mail', {
-        method: 'POST',
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ user_id: user_id, email: targetEmail, domain: domain })
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ user_id: user_id, email: targetEmail, domain: domain })
     })
     setTimeout(() => {
       setIsReSend(true);
@@ -200,7 +200,7 @@ export const showLoginPage: React.FC = () => {
           {!isAuth && <Box id="login_form" style={{ color: 'black' }}>
             <Heading mb={6} justifyContent="center">ログイン</Heading>
             <VStack gap="4" as="form" onSubmit={handleSubmit(onLoginSubmit)} align="stretch">
-              
+
               {/* ログインID Field */}
               <Field.Root invalid={!!errors.userID}>
                 <Field.Label>ログインID</Field.Label>
@@ -227,19 +227,19 @@ export const showLoginPage: React.FC = () => {
                 <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
               </Field.Root>
 
-              <Text 
-                id="error_message" 
+              <Text
+                id="error_message"
                 color="fg.error"
                 fontSize="xs"
                 fontWeight="medium">
-                  {errorMessage}
+                {errorMessage}
               </Text>
-              <Button 
-                mb={6} 
-                bgColor="cyan.500" 
-                type="submit" 
-                id="login-button" 
-                color={'white'} 
+              <Button
+                mb={6}
+                bgColor="cyan.500"
+                type="submit"
+                id="login-button"
+                color={'white'}
                 _hover={{ bg: "cyan.700" }}
                 loading={isSubmitting}>
                 ログイン
@@ -255,16 +255,16 @@ export const showLoginPage: React.FC = () => {
               <Text mb={6} fontSize="sm" textAlign="center">
                 メールに送信された認証コードを入力してください。
               </Text>
-              
+
               <VStack gap="4" as="form" onSubmit={onCertificationSubmit} align="stretch">
-                
+
                 {/* 認証コード入力フィールド */}
                 <Field.Root>
                   <Field.Label>認証コード（数字6桁）</Field.Label>
                   <Center w="full">
-                    <PinInput.Root 
-                      type="numeric" 
-                      otp 
+                    <PinInput.Root
+                      type="numeric"
+                      otp
                       onValueChange={(e) => setCode(e.value.join(""))}
                     >
                       <PinInput.HiddenInput />
@@ -278,10 +278,10 @@ export const showLoginPage: React.FC = () => {
                 </Field.Root>
 
                 {/* エラーメッセージ */}
-                <Text 
-                  id="error_message" 
-                  color="fg.error" 
-                  fontSize="xs" 
+                <Text
+                  id="error_message"
+                  color="fg.error"
+                  fontSize="xs"
                   fontWeight="medium"
                   minH="1.5em"
                 >
@@ -289,9 +289,9 @@ export const showLoginPage: React.FC = () => {
                 </Text>
 
                 {/* 認証ボタン */}
-                <Button 
-                  bgColor="cyan.500" 
-                  type="submit" 
+                <Button
+                  bgColor="cyan.500"
+                  type="submit"
                   id="certification_button"
                   color={'white'}
                   _hover={{ bg: "cyan.700" }}
@@ -325,7 +325,7 @@ export const showLoginPage: React.FC = () => {
                     メールを再送信
                   </Button>
                 </Grid>
-               
+
               </VStack>
             </Box>
           )}
