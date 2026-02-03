@@ -54,3 +54,73 @@ div#menu {
   position: absolute;
   margin-top: 3px;
 }
+
+/* ============ピンのタイトル============ */
+.marker-label {
+  white-space: nowrap;
+  font-size: medium;
+  font-weight: bold;
+  /* white-space: nowrap;
+  font-size: medium;
+  font-weight: 800;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: #000000;
+  color: white; */
+}
+
+/* =============ポップアップ============= */
+.leaflet-popup-content:not(:has(.draw-shape)) {
+  width: 330px !important;
+  max-height: 385px;
+}
+
+#popup_body {
+  max-height: 337px;
+  overflow-y: auto;
+}
+
+.values {
+  margin-bottom: 6px;
+}
+
+span.field-name {
+  font-weight: 600;
+}
+
+img {
+  cursor: pointer;
+  max-width: 110px;
+  max-height: 100px;
+}
+
+table#popup_table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin-bottom: 16px;
+}
+
+#popup_table th {
+  background: aliceblue;
+  border: 1px solid #c9c9c9;
+}
+
+#popup_table td {
+  border: 1px solid #c9c9c9;
+}
+
+#popup_table td>* {
+  padding: 5px 4px 0px 3px;
+}
+
+#popup_table td:first-child {
+  min-width: 163px;
+}
+
+table tbody span.title {
+  display: none;
+}
+
+.leaflet-popup-content a {
+  margin-right: 11px;
+}

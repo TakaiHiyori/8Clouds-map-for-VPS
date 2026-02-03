@@ -1,7 +1,16 @@
 // import '../index.js'
 
-import L from 'leaflet'
+// import L from 'leaflet'
+// import * as L from "leaflet";
+// (window as any).L = L;
+
+// import "leaflet.awesome-markers";
+// import "leaflet.awesome-markers/dist/leaflet.awesome-markers.css";
+// import "font-awesome/css/font-awesome.min.css";
+
 import { DateTime } from 'luxon';
+import { createPopup } from './createPopup';
+
 
 // import { createPopup } from "./createMarker.mjs";
 // import { domainText } from "./map.mjs";
@@ -43,7 +52,7 @@ const colors: any = {
  * @author 髙井
  * 作成日：2025/11/10
  */
-export const marker = async (record: any, config: any, domain: string, login: boolean, latLngBox: any, map: any) => {
+export const marker = async (record: any, config: any, domain: string, login: boolean, latLngBox: any, map: any, field: any) => {
     if (!record[config.latitude].value || !record[config.longitude].value) {
         //経度緯度が未入力の場合、処理を終える
         return {};
@@ -56,10 +65,10 @@ export const marker = async (record: any, config: any, domain: string, login: bo
 
     let marker, markerName
     //ポップアップを作成
-    // const popup = await createPopup(record, config, domain);
+    const popup: string = await createPopup(record, config, domain, field);
     if (config.marker === 'pin') {
         //マーカーを作成
-        marker = L.marker([record[config.latitude].value, record[config.longitude].value])
+        marker = L.marker([record[config.latitude].value, record[config.longitude].value], { riseOnHover: true })
         //マーカーの名前を作成
         markerName = L.marker([record[config.latitude].value, record[config.longitude].value], {
             icon: L.divIcon({
@@ -71,7 +80,7 @@ export const marker = async (record: any, config: any, domain: string, login: bo
         })
     } else {
         //マーカーの種類が円の時、円を作成
-        marker = L.circleMarker([record[config.latitude].value, record[config.longitude].value], { color: '#ffd700', fillColor: '#ffd700', fillOpacity: 1, radius: 10, className: 'marker' });
+        marker = L.circleMarker([record[config.latitude].value, record[config.longitude].value], { color: '#ffd700', fillColor: '#ffd700', fillOpacity: 1, radius: 10, className: 'marker', riseOnHover: true });
         markerName = L.marker([record[config.latitude].value, record[config.longitude].value], {
             icon: L.divIcon({
                 html: '<div class="marker-label">' + record[config.name].value + '</div>',
@@ -95,11 +104,11 @@ export const marker = async (record: any, config: any, domain: string, login: bo
                     extraClasses: 'glyphicons-custom',
                 });
 
-                L.AwesomeMarkers.Icon.prototype.options.prefix = 'ion';
-                marker = L.marker([record[config.latitude].value, record[config.longitude].value], { icon: redMarker }); //マーカーの作成
+                // L.AwesomeMarkers.Icon.prototype.options.prefix = 'ion';
+                marker = L.marker([record[config.latitude].value, record[config.longitude].value], { riseOnHover: true, icon: redMarker }); //マーカーの作成
             } else {
                 //マーカーの種類が円の時
-                marker = L.circleMarker([record[config.latitude].value, record[config.longitude].value], { color: config['change_color_row' + j].color, fillColor: config['change_color_row' + j].color, fillOpacity: 1, radius: 10, className: 'marker' });
+                marker = L.circleMarker([record[config.latitude].value, record[config.longitude].value], { riseOnHover: true, color: config['change_color_row' + j].color, fillColor: config['change_color_row' + j].color, fillOpacity: 1, radius: 10, className: 'marker' });
             }
             break;
         }
@@ -107,15 +116,14 @@ export const marker = async (record: any, config: any, domain: string, login: bo
     //グーグルマップのURLを作成
     const googleMap = `https://www.google.com/maps/search/${record[config.latitude].value},${record[config.longitude].value}/${record[config.latitude].value},${record[config.longitude].value},18.5z?entry=ttu&g_ep=EgoyMDI0MTExMi4wIKXMDSoASAFQAw%3D%3D`
 
-    let detailURL = `<a href="${googleMap}" target="_blank">グーグルマップ</a><a href="./detail/${record.$id.value}">詳細表示</a><button class="detail-button" id="${record.$id.value}">詳細表示</button>`
+    let detailURL = `<a href="${googleMap}" target="_blank">グーグルマップ</a><button class="detail-button" id="${record.$id.value}">詳細表示</button>`
 
     if (!login) {
         //ログインしていないとき、詳細画面へ遷移するURLを非表示
         detailURL = `<a href="${googleMap}" target="_blank">グーグルマップに遷移する</a>`
     }
     marker.bindPopup(
-        // `<div>${popup}</div>${detailURL}`
-        `<div></div>${detailURL}`
+        `<div>${popup}</div>${detailURL}`
     );
 
     const inside = (latLngBox.minLat < Number(record[config.latitude].value) && latLngBox.maxLat > Number(record[config.latitude].value) &&

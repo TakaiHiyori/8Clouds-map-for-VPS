@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 
 import {
   Box,
@@ -10,36 +10,29 @@ import {
   Link,
   MenuItem,
   Portal,
-  Dialog
+  Dialog,
+  Table,
+  Drawer,
+  CloseButton,
+  IconButton
 } from '@chakra-ui/react';
+import { Helmet } from "react-helmet-async"; // <- インポートする
 
-// import { MapContainer, TileLayer, useMap } from 'react-leaflet'
+import { CiImageOn } from "react-icons/ci";
+import { BiCurrentLocation } from "react-icons/bi";
 
 import $ from 'jquery'
 
 import '../../css/map-style.css'
-import 'leaflet/dist/leaflet.css'
 import { checkLogin } from '../../ts/checkLogin';
 
-import { getCurrentPosition } from '../../ts/map/coordinate'
+import { getCurrentPosition, updateMarkersByCenter } from '../../ts/map/coordinate'
 import { showMap } from '../../ts/map/showMap'
 import { showModal } from '../../ts/map/showModal'
 import { judgClick } from '../../ts/map/judgClick'
 import { SearchAddress } from './map/serachAddress';
 import { SearchMarkers } from './map/sesarchMarkers'
 
-// import '../../css/51-modern-default.css';
-// import '../../css/loading.css';
-// import '../../css/style.css';
-// import '../../css/multiple-select-style.css';
-
-let newRecord: boolean = false;
-let currentTile: string = "OpenStreetMap";
-let layerMap: any
-let map: any
-// let map: any;
-const otherLayer: any[] = [];
-let zoom: number = 18;
 
 let drawing: boolean = false;
 let drawManuClose: boolean = false;
@@ -59,7 +52,6 @@ let allDraws: any[] = []
 
 let allMarker: any = {};
 
-let hideMarkers: any[] = []
 // let searchMarkers: any[] = [],
 let leafletLayerHideMarkers: any[] = [];
 
@@ -67,70 +59,137 @@ let records: any[] = []
 
 let showMapInformation: any = {}
 
-export const mapView: React.FC = () => {
-  const mapDomain: string = window.location.hostname;
-  let mapName: string = 'マップ';
-  let userName: string = '';
-  const otherMap: any[] = []
-  let errorMessage: string = '';
-  let config: any = {};
+export type mapTileNames = 'open_street_map' | 'GRUS_images' | 'digital_topographic_map' | 'light_colored_map';
 
-  let Initial = false
+interface returnMap {
+  map: any,
+  currentTile: mapTileNames,
+  name: string,
+  layerMap: any,
+  records: any[],
+  allMarker: any[]
+}
 
-  const result = checkLogin(mapDomain);
-  console.log(result)
+interface showMapinfo {
+  // date: number;
+  key: string;
+  login: number;
+  latitude: number;
+  longitude: number;
+  mapLayer: string;
+}
 
-  userName = result.userName
-  const login = result.login;
-  const loginInfomation = result.loginUserInfomation
+export const mapView = () => {
+  const [login, setLogin] = useState<boolean>(false);
+  const [loginUserInfo, setLoginUserInfo] = useState<any>({});
 
-  if (!result.login) {
-    window.location.href = `./login`
-  }
+  const [map, setMap] = useState<any>({});
+  const [currentTile, setCurrentTile] = useState<mapTileNames>('open_street_map');
+  const [mapTileButton, setMapTileButton] = useState<any>(document.getElementById(currentTile));
+  const [mapDomain, setMapDomain] = useState<string>(window.location.hostname);
+  const [mapName, setMapName] = useState<string>('マップ');
+  const [userName, setUserName] = useState<string>('');
+  const [showMapInformation, setShowMapInformation] = useState<showMapinfo>({
+    // date: Date.now(),
+    key: '1',
+    login: 1,
+    latitude: 35.683,
+    longitude: 139.757,
+    mapLayer: currentTile
+  });
 
+  const [mapTile, setMapTile] = useState<any[]>([
+    { label: 'OpenStreetMap', value: 'open_street_map' },
+    { label: '国土地理院 GRUS画像', value: 'GRUS_images' },
+    { label: '国土地理院 電子地形図', value: 'digital_topographic_map' },
+    { label: '国土地理院 電子地形図(淡色地図)', value: 'light_colored_map' },
+  ])
+  const [otherMaps, setOtherMaps] = useState<any[]>([]);
+  const [otherMapLayers, setOtherMapLayers] = useState<any[]>([]);
 
-  const [buttonList, setDivList] = useState<React.ReactNode[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [configs, setConfigs] = useState<any>({});
+  const [layerMap, setLayserMaps] = useState<{
+    'open_street_map': any;
+    'GRUS_images': any;
+    'digital_topographic_map': any;
+    'light_colored_map': any;
+  }>({
+    'open_street_map': {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    },
+    'GRUS_images': {
+      attribution: '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院 GRUS画像（© Axelspace）</a>',
+      url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'
+    },
+    'digital_topographic_map': {
+      attribution: '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院 電子地形図</a>',
+      url: 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png'
+    },
+    'light_colored_map': {
+      attribution: '&copy; <a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院 電子地形図（淡色地図）</a>',
+      url: 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'
+    }
+  });
+  const [records, setRecords] = useState<any[]>([]);
+  const [allMarker, setAllMarker] = useState<any[]>([]);
+  const [centerMarker, setCenterMarker] = useState<any>({});
+  const [position, setPosition] = useState<any[]>([]);
 
-  // 2. 新しいdivを追加する関数
-  const addButton = (layer: any) => {
-    const newElement = (
-      <Button bgColor="gray.100" variant="subtle" size="sm" justifyContent="flex-start" w={'100%'} style={{ borderRadius: '0%' }}
-        id={layer.id} className={layer.className}>
-        {layer.name}
-      </Button>
-    );
-    // 新しい要素を追加した新しい配列をstateにセット
-    setDivList([...buttonList, newElement]);
-  };
+  const didInit = useRef(false);
 
-  const showMapLocalStorageKey = `show_map_${mapDomain}_${loginInfomation?.id}`
+  // const [buttonList, setDivList] = useState<React.ReactNode[]>([]);
+
+  const [showMapLocalStorageKey, setShowMapLocalStorageKey] = useState<string>('');
+
+  const [newRecord, sestNewRecord] = useState<boolean>(false);
+  let zoom: number = 18;
+  let hideMarkers: any[] = [];
+
   useEffect(() => {
-    if (Initial || !result.login) return
+    if (didInit.current) return
     const initializeMapDisplay = async () => {
       try {
         //マップ表示の情報を取得するためのキー
+        const result = checkLogin(mapDomain);
+        console.log(result)
 
-        const getConfigParams = new URLSearchParams({ domain: mapDomain, user: loginInfomation.id })
+        setUserName(result.userName)
+        setLogin(result.login);
+        const loginUserInfo = result.loginUserInfomation;
+
+        if (!result.login) {
+          window.location.href = `./login`
+        }
+        const showMapLocalStorageKey = `show_map_${mapDomain}_${loginUserInfo?.id}`;
+        setShowMapLocalStorageKey(showMapLocalStorageKey)
+
+        const getConfigParams = new URLSearchParams({ domain: mapDomain, user: loginUserInfo.id })
         const configResp = await fetch(`./getConfig?${getConfigParams.toString()}`);
         // return await configResp.json()
 
         if (!configResp.ok) {
-          throw new Error('設定の取得に失敗しました。')
+          throw new Error('設定の取得に失敗しました。');
         }
         /** 設定を取得 */
-        config = await configResp.json();
-        console.log(config)
+        const configs = await configResp.json();
+        console.log(configs)
+        setConfigs(configs)
 
-        if (config.drawMap) {
+        if (configs.drawMap) {
           $('#drawing').show()
         }
 
-        if (Object.keys(config).length <= 6) {
+        const otherMaps: any[] = [];
+        const otherMapLayers: any[] = [];
+
+        if (Object.keys(configs.config).length === 0) {
           //config1がないとき
           $('#menu').hide()
           $('#map button').hide()
 
-          if (login && loginInfomation.authority !== 1) {
+          if (result.login && loginUserInfo.authority !== 1) {
             $('#map').append(`<h1>閲覧できるマップがありません。\n設定を行ってください。</h1>`);
           } else {
             $('#map').append('<h1>閲覧できるマップがありません。</h1>');
@@ -138,91 +197,105 @@ export const mapView: React.FC = () => {
           $('#loading').remove();
 
         } else {
-          const showMapLocation: null | any = localStorage.getItem(showMapLocalStorageKey)
+          const showMapInformation: showMapinfo = localStorage.getItem(showMapLocalStorageKey) !== null ?
+            JSON.parse(localStorage.getItem(showMapLocalStorageKey)) :
+            {
+              // date: Date.now(),
+              key: '1',
+              login: 1,
+              latitude: 35.683,
+              longitude: 139.757,
+              mapLayer: currentTile
+            };
+          console.log(showMapInformation);
+
+          setShowMapInformation(showMapInformation);
+          localStorage.setItem(showMapLocalStorageKey, JSON.stringify(showMapInformation));
+          let position: any
+          console.log(Object.keys(configs.config)[0])
 
           let chackAuthority: boolean = false;
 
-          for (const key in config) {
-            if (config[key].mapTitle) {
-              if (!chackAuthority) {
-                if (!showMapLocation || Date.now() - (4 * 60 * 60 * 1000) > JSON.parse(showMapLocation).date) {
-                  const position: any = await getCurrentPosition(config[key])
-                  console.log(position)
-                  localStorage.removeItem(showMapLocalStorageKey);
-                  showMapInformation = {
-                    date: Date.now(),
-                    key: key,
-                    login: loginInfomation.id,
-                    latitude: position.lat,
-                    longitude: position.lng,
-                    mapLayer: config[key].mapTile
-                  }
-                  localStorage.setItem(showMapLocalStorageKey, JSON.stringify(showMapInformation));
-                } else {
-                  showMapInformation = JSON.parse(showMapLocation);
-                  if (config[showMapInformation.key] === undefined) {
-                    const position: any = await getCurrentPosition(config[key])
-                    console.log(position)
-                    localStorage.removeItem(showMapLocalStorageKey);
-                    showMapInformation = {
-                      date: Date.now(),
-                      key: key,
-                      login: loginInfomation.id,
-                      latitude: position.lat,
-                      longitude: position.lng,
-                      mapLayer: config[key].mapTile
-                    }
-                    localStorage.setItem(showMapLocalStorageKey, JSON.stringify(showMapInformation));
-                  }
-                  // }
-                }
+          for (const key in configs.config) {
+            const config = configs.config[key]
 
-                chackAuthority = true
+            if (!chackAuthority) {
+
+              // if (Date.now() - (4 * 60 * 60 * 1000) > showMapInformation.date) {
+              //   showMapInformation.date = Number(Date.now());
+              //   showMapInformation.latitude = position.lat;
+              //   showMapInformation.longitude = position.lng;
+              //   showMapInformation.mapLayer = config.mapTile;
+              // }
+
+              if (configs.config[showMapInformation.key] === undefined) {
+                position = await getCurrentPosition(config);
+                console.log(position)
+                // showMapInformation.date = Number(Date.now());
+                showMapInformation.key = key;
+                showMapInformation.latitude = position.lat;
+                showMapInformation.longitude = position.lng;
+                showMapInformation.mapLayer = config.mapTile;
+                setShowMapInformation(showMapInformation);
+                localStorage.setItem(showMapLocalStorageKey, JSON.stringify(showMapInformation));
+              } else {
+                position = await getCurrentPosition(configs.config[showMapInformation.key]);
+                console.log(position)
               }
+              setPosition([position.lat, position.lng])
 
-              // addButton({ id: key, name: config[key].mapTitle, className: 'button-selects' })
+              chackAuthority = true
+            }
 
-              if (showMapInformation.key !== key) {
-                otherLayer.push(key)
+            if (showMapInformation.key !== key) {
+              const option = {
+                label: config.mapTitle, value: config.id
               }
+              otherMapLayers.push(option)
+              otherMaps.push(option)
             }
           }
-          if (!chackAuthority) {
-            //閲覧できるマップがなかった時、警告を出す。
-            $('#menu button').hide()
-            $('#map button').hide()
+          // if (!chackAuthority) {
+          //   //閲覧できるマップがなかった時、警告を出す。
+          //   $('#menu button').hide()
+          //   $('#map button').hide()
 
-            if (loginInfomation.authority !== 1) {
-              errorMessage = '閲覧できるマップがありません。\n設定を行ってください。'
-            } else {
-              errorMessage = '閲覧できるマップがありません。'
-            }
-            // $('.loading-content').attr('class', 'loading-content loaded')
-            $('#loading').remove();
+          //   if (loginUserInfo.authority !== 1) {
+          //     setErrorMessage('閲覧できるマップがありません。\n設定を行ってください。')
+          //   } else {
+          //     setErrorMessage('閲覧できるマップがありません。')
+          //   }
+          //   // $('.loading-content').attr('class', 'loading-content loaded')
+          //   $('#loading').remove();
+          // } else {
+
+          if (otherMapLayers.length >= 1) {
+            // await createOtherMapModal(config, otherLayer, map, showMapInformation.key);
           } else {
-
-            $('#map-types').css('display', 'block');
-            $('#map-layers').css('display', 'block');
-
-            $(`#map-types .select-options #${showMapInformation.key}`).attr('class', 'selected-option');
-
-            if (otherLayer.length >= 1) {
-              // await createOtherMapModal(config, otherLayer, map, showMapInformation.key);
-            } else {
-              $('#map_show_other_layer').hide();
-              $('#mobail_menu #other_maps').hide();
-              $('#mobail_menu #other_maps').next().hide();
-            }
-            const showMapResult = await showMap(config, showMapInformation.key, login, showMapInformation);
-            map = showMapResult.map
-            currentTile = showMapResult.currentTile
-            mapName = showMapResult.name;
-            layerMap = showMapResult.layerMap;
-            records = showMapResult.records
-
-            document.getElementById(currentTile).disabled = true
+            // $('#map_show_other_layer').hide();
+            // $('#mobail_menu #other_maps').hide();
+            // $('#mobail_menu #other_maps').next().hide();
           }
+          const centerMarker = L.circleMarker([position.lat, position.lng], { color: '#0000ff', fillColor: '#1e90ff', fillOpacity: 1, radius: 10, className: 'marker' }).bindPopup("現在地");
+
+          const showMapResult: returnMap = await showMap(configs, showMapInformation.key, login, showMapInformation);
+          setMap(showMapResult.map)
+          setCurrentTile(showMapResult.currentTile)
+          setMapName(showMapResult.name);
+          setLayserMaps(showMapResult.layerMap);
+          setRecords(showMapResult.records);
+          setAllMarker(showMapResult.allMarker);
+
+          setMapTileButton(mapTileButton);
+
+          centerMarker.addTo(showMapResult.map);
+          setCenterMarker(centerMarker)
+          // }
         }
+
+        setOtherMaps(otherMaps)
+        setOtherMapLayers(otherMapLayers);
+
         $('#loading').remove();
         console.log(document.getElementById('map'))
       } catch (e: any) {
@@ -232,61 +305,127 @@ export const mapView: React.FC = () => {
     };
 
     initializeMapDisplay();
-  }, [login, loginInfomation]);
-
-
-  const modalHide = (selectOptionModal: any[], addressSearchModal: null | any, searchModal: null | any) => {
-    for (let i = 0; i < selectOptionModal.length; i++) {
-      selectOptionModal[i].style.display = 'none';
-    }
-    if (addressSearchModal) {
-      addressSearchModal.style.display = 'none';
-    }
-    if (searchModal) {
-      searchModal.style.display = 'none';
-    }
-  }
+    didInit.current = true;
+  }, []);
 
   const onClick = (event: any) => {
-    const selectOptionModal: any = document.getElementsByClassName('select-options');
-    const addressSearchModal: any = document.getElementById('address_search_modal');
-    const searchModal: any = document.getElementById('searchModal')
-
-    if (event.target.nextElementSibling && event.target.nextElementSibling.tagName === 'DIV' && event.target.nextElementSibling.style.display === 'none') {
-      modalHide(selectOptionModal, addressSearchModal, searchModal);
-
-      event.target.nextElementSibling.style.display = 'block'
-    } else if (event.target.parentNode.nextElementSibling && event.target.parentNode.nextElementSibling.tagName === 'DIV' && event.target.parentNode.nextElementSibling === 'none') {
-      modalHide(selectOptionModal, addressSearchModal, searchModal);
-
-      event.target.parentNode.nextElementSibling = 'block'
-    } else {
-      modalHide(selectOptionModal, addressSearchModal, searchModal);
-    }
   }
 
-  $('body').click(function (e) {
-    judgClick(e);
-  })
-
+  /**
+   * ログアウト
+   */
   const logout = () => {
     localStorage.removeItem(`map_${mapDomain}`);
     window.location.href = `./login`;
   }
 
+  /**
+   * レイヤーを切り替えたとき
+   * @param e
+   */
   const changeLayer = (e: any) => {
+    const value: mapTileNames = e.value;
+    console.log(e)
     layerMap[currentTile].remove(map);
-    document.getElementById(currentTile).disabled = false
-    currentTile = e.target.id;
-    document.getElementById(currentTile).disabled = true
-    layerMap[currentTile].addTo(map);
+    layerMap[value].addTo(map);
 
-    showMapInformation.mapLayer = currentTile;
-    localStorage.setItem(showMapLocalStorageKey, JSON.stringify(showMapInformation));
+    const newShowMapInfo = showMapInformation
+
+    // localStorage.removeItem(showMapLocalStorageKey);
+    newShowMapInfo.mapLayer = value;
+    console.log(newShowMapInfo)
+    localStorage.setItem(showMapLocalStorageKey, JSON.stringify(newShowMapInfo));
+    console.log(localStorage.getItem(showMapLocalStorageKey))
+    setCurrentTile(value);
+    setShowMapInformation(newShowMapInfo);
+  }
+
+  /**
+   * マップを切り替えたとき
+   * @param e
+   */
+  const changeMap = async (e: any) => {
+    console.log(e);
+    const position: any = await getCurrentPosition(configs.config[e.value]);
+
+    const newShowMapInfo = showMapInformation
+
+    // localStorage.removeItem(showMapLocalStorageKey);
+    newShowMapInfo.key = e.value;
+    newShowMapInfo.latitude = position.lat;
+    newShowMapInfo.longitude = position.lng;
+    newShowMapInfo.mapLayer = configs.config[e.value].mapTile
+    console.log(newShowMapInfo)
+    localStorage.setItem(showMapLocalStorageKey, JSON.stringify(newShowMapInfo));
+    window.location.href = `./`
+  }
+
+  const backCenter = async () => {
+    const position: any = await getCurrentPosition(configs.config[showMapInformation.key]);
+    const centerLat = position.lat;
+    const centerLng = position.lng;
+    centerMarker.setLatLng([centerLat, centerLng]);
+
+    const newShowMapInfo = showMapInformation
+
+    newShowMapInfo.latitude = position.lat;
+    newShowMapInfo.longitude = position.lng;
+    localStorage.setItem(showMapLocalStorageKey, JSON.stringify(newShowMapInfo));
+    setShowMapInformation(newShowMapInfo);
+    map.panTo(new L.LatLng(centerLat, centerLng))
+  }
+
+  /**=====================================ズームレベルの取得===================================================== */
+  if (map?.on) {
+    //マップが表示されているとき
+    map.on('moveend zoomend', function (e: any) {
+      //マップムーブイベントで値を出力
+      zoom = map.getZoom();
+
+      updateMarkersByCenter(allMarker, hideMarkers, map)
+
+      if (zoom <= 12) {
+        $('.marker-label').hide()
+      } else {
+        $('.marker-label').css('display', 'block');
+      }
+    });
+
+    centerMarker.on('click', function (e: any) {
+      console.log(e);
+      map.panTo(new L.LatLng(e.latlng.lat, e.latlng.lng))
+
+      const newShowMapInfo = showMapInformation
+
+      newShowMapInfo.latitude = e.latlng.lat;
+      newShowMapInfo.longitude = e.latlng.lng;
+      localStorage.setItem(showMapLocalStorageKey, JSON.stringify(newShowMapInfo));
+      setShowMapInformation(newShowMapInfo);
+      updateMarkersByCenter(allMarker, hideMarkers, map);
+    });
+
+    allMarker.forEach((marker: any) => {
+      console.log(marker)
+      marker.marker.on('click', function (e: any) {
+        console.log(e);
+
+        map.panTo(new L.LatLng(e.latlng.lat, e.latlng.lng))
+        const newShowMapInfo = showMapInformation
+
+        newShowMapInfo.latitude = e.latlng.lat;
+        newShowMapInfo.longitude = e.latlng.lng;
+        localStorage.setItem(showMapLocalStorageKey, JSON.stringify(newShowMapInfo));
+        setShowMapInformation(newShowMapInfo);
+        updateMarkersByCenter(allMarker, hideMarkers, map);
+      })
+    })
   }
 
   return (
     <Box h={'100%'}>
+      <Helmet>
+        <title>{mapName}</title>
+      </Helmet>
       <div id='map_header'>
         <Heading mb={6} id="map_title" style={{ margin: 'unset' }}>
           {mapName}
@@ -316,7 +455,7 @@ export const mapView: React.FC = () => {
       <Box id="menu">
         <Dialog.Root>
           <Dialog.Trigger>
-            <Button size="md" bgColor="cyan.500" id="search_records" title="ピンを絞り込む" onClick={onClick}>絞込み</Button>
+            <Button size="md" bgColor="cyan.500" id="search_records" title="ピンを絞り込む">絞込み</Button>
           </Dialog.Trigger>
           <Dialog.Backdrop />
           <Dialog.Positioner>
@@ -335,7 +474,7 @@ export const mapView: React.FC = () => {
 
         <Dialog.Root>
           <Dialog.Trigger>
-            <Button size="md" bgColor="cyan.500" id="address_search" title="住所検索を行う" onClick={onClick}>住所</Button>
+            <Button size="md" bgColor="cyan.500" id="address_search" title="住所検索を行う" >住所</Button>
           </Dialog.Trigger>
           <Dialog.Backdrop />
           <Dialog.Positioner>
@@ -351,42 +490,94 @@ export const mapView: React.FC = () => {
             </Dialog.Content>
           </Dialog.Positioner>
         </Dialog.Root>
-        <Button size="md" bgColor="cyan.500" id="new_record" style={{ display: 'none' }} title="マップをクリックして登録する" onClick={onClick}>クリックで登録</Button>
-        <Button size="md" bgColor="cyan.500" id="input_image_button" style={{ display: 'none' }} title="画像でピンを登録する" onClick={onClick}>画像で登録</Button>
+        <Button size="md" bgColor="cyan.500" id="new_record" title="クリックでピンを登録" >クリックで登録</Button>
+        <Button size="md" bgColor={newRecord ? "cyan.700" : "cyan.500"} id="input_image_button" display={configs.addImage ? 'block' : 'none'} title="画像でピンを登録" onClick={() => sestNewRecord(!newRecord)}>画像で登録</Button>
         <Input type="file" id="input_image" style={{ display: 'none' }} multiple />
         <Box className="select-button" id="map_tiles" title="マップのタイルを変更">
-          <Button size="md" bgColor="cyan.500" id="map_tile_select_button" className="show-button-dropdown" onClick={onClick}>
-            <img src="./mapTile.png" alt="map tile" style={{
-              width: '35px !important',
-              height: '35px'
-            }} />
-          </Button>
-          <Box className="select-options map-tile-select-modal" style={{ display: 'none' }}
-            bg="white" borderWidth="1px" shadow="md" borderRadius="md" w={'256px'}>
-            <Button bgColor="gray.100" variant="subtle" size="sm" justifyContent="flex-start" w={'100%'} style={{ borderRadius: '0%' }} id="open_street_map" className="button-selects" onClick={changeLayer}>OpenStreetMap</Button>
-            <Button bgColor="gray.100" variant="subtle" size="sm" justifyContent="flex-start" w={'100%'} style={{ borderRadius: '0%' }} id="GRUS_images" className="button-selects" onClick={changeLayer}>国土地理院 GRUS画像</Button>
-            <Button bgColor="gray.100" variant="subtle" size="sm" justifyContent="flex-start" w={'100%'} style={{ borderRadius: '0%' }} id="digital_topographic_map" className="button-selects" onClick={changeLayer}>国土地理院 電子地形図</Button>
-            <Button bgColor="gray.100" variant="subtle" size="sm" justifyContent="flex-start" w={'100%'} style={{ borderRadius: '0%' }} id="light_colored_map" className="button-selects" onClick={changeLayer}>国土地理院 電子地形図(淡色地図)</Button>
-          </Box>
+          <Menu.Root onSelect={changeLayer}>
+            <Menu.Trigger >
+              {/* <Button size="md" bgColor="cyan.500" id="map_tile_select_button" className="show-button-dropdown" >
+                <img src="./mapTile.png" alt="map tile" style={{
+                  width: '35px !important',
+                  height: '35px'
+                }} />
+              </Button> */}
+              <IconButton size="md" bgColor="cyan.500">
+                <CiImageOn width={'40px'}
+                  height={'40px'} />
+              </IconButton>
+            </Menu.Trigger>
+            <Menu.Positioner>
+              <Menu.Content>
+                {mapTile.map((tile: any) => (
+                  <Menu.Item
+                    // disabled={currentTile ==== tile.valie ? true: false}
+                    value={tile.value}>
+                    {tile.label}
+                  </Menu.Item>
+                ))}
+              </Menu.Content>
+            </Menu.Positioner>
+          </Menu.Root>
         </Box >
-        <Box className="select-button" id="map-types">
-          <Button size="md" bgColor="cyan.500" id="map_type_select_button" className="show-button-dropdown" title="表示するマップを切り替える" onClick={onClick}>
-            マップ切替
-          </Button>
-          <Box className="select-options map-type-select-modal" style={{ display: 'none' }}
-            bg="white" borderWidth="1px" shadow="md" borderRadius="md">
-          </Box>
+        <Box className="select-button" id="map-types" display={otherMaps.length >= 0 ? 'block' : 'none'}>
+          <Menu.Root onSelect={changeMap}>
+            <Menu.Trigger>
+              <Button size="md" bgColor="cyan.500" id="map_type_select_button" className="show-button-dropdown" title="表示するマップを切り替える" >
+                マップ切替
+              </Button>
+            </Menu.Trigger>
+            <Menu.Positioner>
+              <Menu.Content>
+                {otherMaps.map((map: any) => (
+                  <Menu.Item value={map.value}>{map.label}</Menu.Item>
+                ))}
+              </Menu.Content>
+            </Menu.Positioner>
+          </Menu.Root>
         </Box>
-        <Box className="select-button" id="map-layers">
-          <Button size="md" bgColor="cyan.500" id="map_show_other_layer" className="show-button-dropdown" title="閲覧できるほかのマップを重ねて表示する" onClick={onClick}>
-            他のマップ
-          </Button>
-          <Box className="select-options map-show-other-layer-modal" style={{ display: 'none' }} >
-            {/* {buttonList} */}
-          </Box>
+        <Box className="select-button" id="map-layers" display={otherMapLayers.length >= 0 ? 'block' : 'none'}>
+          <Menu.Root>
+            <Menu.Trigger >
+              <Button size="md" bgColor="cyan.500" id="map_show_other_layer" className="show-button-dropdown" title="閲覧できるほかのマップを重ねて表示する" >
+                他のマップ
+              </Button>
+            </Menu.Trigger>
+            <Menu.Positioner>
+              <Menu.Content>
+                {otherMapLayers.map((map: any) => (
+                  <Table.Root>
+
+                  </Table.Root>
+                  // <Menu.Item value={map.value}>{map.label}</Menu.Item>
+                ))}
+              </Menu.Content>
+            </Menu.Positioner>
+          </Menu.Root>
         </Box>
-        <Button size="md" bgColor="cyan.500" id="drawing" style={{ display: 'none' }} title="マップ上に描画を行う" onClick={onClick}>描画</Button>
-        <Button size="md" bgColor="cyan.500" id="add_shapefile" title="シェープファイルでピンや経路を追加する" style={{ display: 'none' }} onClick={onClick}>シェープファイルで追加</Button>
+
+        <Drawer.Root closeOnInteractOutside={false} modal={false} placement={"start"} >
+          <Drawer.Trigger asChild>
+            <Button size="md" bgColor="cyan.500" id="drawing" title="マップ上に描画を行う" display={configs.drawMap ? 'block' : 'none'} >描画</Button>
+          </Drawer.Trigger>
+          <Portal>
+            <Drawer.Positioner pointerEvents="none">
+              <Drawer.Content>
+                <Drawer.Body>
+                  <Button>線</Button>
+                  <Button>円</Button>
+                  <Button>多角形</Button>
+                </Drawer.Body>
+                <Drawer.CloseTrigger asChild>
+                  <CloseButton size="sm" />
+                </Drawer.CloseTrigger>
+              </Drawer.Content>
+            </Drawer.Positioner>
+          </Portal>
+        </Drawer.Root>
+
+        <Button size="md" bgColor="cyan.500" id="add_shapefile" title="シェープファイルでピンや経路を追加する" display={configs.addShapeFile ? 'block' : 'none'}
+          onClick={onClick}>シェープファイルで追加</Button>
         <Input type="file" id="select_shapefile" style={{ display: 'none' }} multiple />
         <Box id="controlArtistName" />
         <Box id="controlAlbumName" />
@@ -395,7 +586,24 @@ export const mapView: React.FC = () => {
       </Box >
       <Box id="map">
         <Text>{errorMessage}</Text>
+        <IconButton variant="subtle" colorPalette={"white"} w={"35px"} h={"35px"} rounded={"xl"}
+          position={"fixed"} zIndex={"1001"} bottom={0} right={0} marginBottom={"20px"} marginRight={"10px"} boxShadow={"0px 0px 1px"}
+          onClick={backCenter}>
+          <BiCurrentLocation />
+        </IconButton>
       </Box>
+      {/* <MapContainer center={position} zoom={18}>
+        <TileLayer
+          attribution={layerMap[currentTile]}>
+          {allMarker.forEach((markers: any) => {
+            <Marker position={[markers.marker.latlng.lat, markers.markar.latlng.lng]}>
+              <Popup>
+                A pretty CSS3 popup. <br /> Easily customizable.
+              </Popup>
+            </Marker>
+          })}
+        </TileLayer>
+      </MapContainer> */}
     </Box >
   )
 }

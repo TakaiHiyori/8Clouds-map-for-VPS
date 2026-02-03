@@ -1,22 +1,21 @@
 
-import $ from 'jquery';
-import L from 'leaflet';
-
 import { getCurrentPosition, getMapViewDistanceKm, getBoundingBox } from './coordinate';
 import { createQuery } from './createQuery';
 import { marker } from './marker';
+import { mapTileNames } from '../../tsx/paegs/map';
 
-export const showMap = async (config: any, showMap: string, login: boolean, showMapInformation: any) => {
-  console.log(config)
+export const showMap = async (configs: any, showMap: string, login: boolean, showMapInformation: any) => {
+  console.log(configs)
 
   console.log(showMapInformation)
 
   /**kintoneのドメイン*/
-  const domain: string = config.domain
-  const mapConfig: any = config[showMap]
+  const domain: string = configs.domain
+  const mapConfig: any = configs.config[showMap];
+  console.log(mapConfig)
 
   let recordsResp: any[] = [];
-  let currentTile: string = ''
+  let currentTile: mapTileNames = 'open_street_map'
   let allMarker: any[] = []
 
   //表示するマップのタイル
@@ -44,8 +43,8 @@ export const showMap = async (config: any, showMap: string, login: boolean, show
   };
 
   //マップのタイトルを設定
-  $('#map-title').text(mapConfig.mapTitle);
-  $('head title').text(mapConfig.mapTitle);
+  // $('#map-title').text(mapConfig.mapTitle);
+  // $('head title').text(mapConfig.mapTitle);
 
   const params = new URLSearchParams({ domain: domain, appId: mapConfig.appId, token: mapConfig.token });
   const getFieldResp = await fetch(`./kintone/getField?${params.toString()}`);
@@ -60,10 +59,10 @@ export const showMap = async (config: any, showMap: string, login: boolean, show
 
   //マップのタイルの種類を取得
   if (showMapInformation.mapLayer) {
-    $('#menu #' + showMapInformation.mapLayer).attr('class', 'selected-option');
+    // $('#menu #' + showMapInformation.mapLayer).attr('class', 'selected-option');
     currentTile = showMapInformation.mapLayer
   } else {
-    $('#menu #' + mapConfig.mapTile).attr('class', 'selected-option');
+    // $('#menu #' + mapConfig.mapTile).attr('class', 'selected-option');
     currentTile = mapConfig.mapTile
   }
 
@@ -71,7 +70,6 @@ export const showMap = async (config: any, showMap: string, login: boolean, show
   const position: any = await getCurrentPosition(mapConfig);
   let centerLat = position.lat;
   let centerLng = position.lng;
-  const centerMarker = L.circleMarker([centerLat, centerLng], { color: '#0000ff', fillColor: '#1e90ff', fillOpacity: 1, radius: 10, className: 'marker' }).bindPopup("現在地");
 
   if (showMapInformation.latitude !== undefined && showMapInformation.longitude !== undefined) {
     //座標が既に設定されているとき
@@ -81,7 +79,6 @@ export const showMap = async (config: any, showMap: string, login: boolean, show
 
   const map = L.map('map', { zoomControl: false, minZoom: 10 }).setView([showMapInformation.latitude, showMapInformation.longitude], 18);
   layerMap[showMapInformation.mapLayer].addTo(map)
-  centerMarker.addTo(map);
   L.control.scale({
     maxWidth: 100,
     imperial: false
@@ -122,7 +119,7 @@ export const showMap = async (config: any, showMap: string, login: boolean, show
 
   recordsResp.forEach(async (records: any[]) => {
     records.forEach(async (record: any) => {
-      const createMarker = await marker(record, mapConfig, domain, login, latLngBox, map);
+      const createMarker = await marker(record, mapConfig, domain, login, latLngBox, map, field);
       if (allMarker[record.$id.value]) {
         map.removeLayer(allMarker[record.$id.value].marker)
         map.removeLayer(allMarker[record.$id.value].markerName)
@@ -139,41 +136,130 @@ export const showMap = async (config: any, showMap: string, login: boolean, show
 
   if (mapConfig.group !== '' && mapConfig.group) {
 
-    let layerPosition: string = 'topleft';
+    let layerPosition = 'topleft';
     if ((/iPhone|Android.+Mobile|ipad|iPad|macintosh/).test(navigator.userAgent) || ("ontouchend" in document)) {
       layerPosition = 'topright';
     }
 
     const layerControl = L.control.layers({}, {}, { position: layerPosition }).addTo(map);
 
-    for (const key in field.properties[mapConfig.group].options) {
-      layerControl.addOverlay(L.layerGroup(), field.properties[mapConfig.group].options[key].label);
+    for (const key in field[mapConfig.group].options) {
+      layerControl.addOverlay(L.layerGroup(), field[mapConfig.group].options[key].label);
     }
 
+    const leafletControl = document.querySelectorAll('.leaflet-control-layers.leaflet-control')
+    leafletControl[0].style.marginTop = 'unset'
     if (layerPosition !== 'topright') {
-      const menuWidth = Number($('#menu').css('width').replace('px', ''))
-      $('.leaflet-control-layers.leaflet-control').css({ 'margin-left': menuWidth + 10 + 'px', 'margin-top': 'unset' });
-    } else {
-      $('.leaflet-control-layers.leaflet-control').css('margin-top', 'unset');
+      // const menuWidth = Number($('#menu').css('width').replace('px', ''))
+      const menu = document.getElementById('menu');
+      leafletControl[0].style.marginLeft = menu?.scrollWidth + 10 + 'px';
     }
   }
 
-  for (let i = 0; i < $('.leaflet-control-layers-selector').length; i++) {
-    $('.leaflet-control-layers-selector').eq(i).hide();
-    $('.leaflet-control-layers-selector').eq(i).next().hide()
-    $('.leaflet-control-layers-selector').eq(i).next().after($('<label>').attr('for', $('.leaflet-control-layers-selector').eq(i).next().text().replace(/\s/g, '')).text($('.leaflet-control-layers-selector').eq(i).next().text()))
-    $('.leaflet-control-layers-selector').eq(i).next().after($('<input>').attr({ type: 'checkbox', class: 'layer-control-check', id: $('.leaflet-control-layers-selector').eq(i).next().text().replace(/\s/g, '') }))
-    $('.leaflet-control-layers-selector').eq(i).parent().css('display', 'flex')
+  const leafletSelects = document.getElementsByClassName('leaflet-control-layers-selector')
+  for (let i = 0; i < leafletSelects.length; i++) {
+    const leafletSelectNext = leafletSelects[i].nextElementSibling
+    const label = document.createElement('label');
+    label.textContent = leafletSelectNext?.textContent;
+    label.for = `leaflet-control-layers-selector-${i}`
+    leafletSelects[i].after(label)
+
+    const input = document.createElement('input');
+    input.type = 'checkbox'
+    input.className = 'layer-control-check';
+    input.id = `leaflet-control-layers-selector-${i}`
+    input.checked = true;
+    leafletSelects[i].after(input);
+
+    leafletSelects[i].parentNode.style.display = 'flex'
+
+    leafletSelectNext?.remove();
+    leafletSelects[i].remove();
+    i--;
   }
 
-  $('.layer-control-check').attr('checked', true).prop('checked', true).change()
+  /**=====================================現在地の周辺以外のレコードを取得===================================================== */
+  query = `${mapConfig.latitude} != "" and ${mapConfig.longitude} != "" and
+                      (${mapConfig.latitude} < ${latLngBox.minLat} or ${mapConfig.latitude} > ${latLngBox.maxLat} or
+                       ${mapConfig.longitude} < ${latLngBox.minLng} or ${mapConfig.longitude} > ${latLngBox.maxLng})`
+
+  query += createQuery(mapConfig, field);
+
+  markerProcessStart = performance.now();
+
+  recordCounter.forEach(async (i, index) => {
+    if (i > 10000) {
+      return;
+    }
+    console.log('マーカー処理開始:', new Date().toISOString());
+    const get500Query = query + ` limit 500 offset ${i}`;
+    const body = {
+      app: mapConfig.appId,
+      query: get500Query
+    }
+    await fetch(`./kintone/getNewRecords`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ domain: domain, token: mapConfig.token, body: body })
+    })
+      .then(async (response) => {
+        const records = await response.json()
+        records.records.forEach(async (record: any) => {
+          const createMarker = await marker(record, mapConfig, domain, login, latLngBox, map, field);
+          if (allMarker[record.$id.value]) {
+            map.removeLayer(allMarker[record.$id.value].marker)
+            map.removeLayer(allMarker[record.$id.value].markerName)
+          }
+          allMarker[record.$id.value] = createMarker
+          // createMarker.marker.on('click', onMarkerClick)
+        })
+        recordsResp.push(records.records)
+
+        if (recordCounter[index + 1] > 10000) {
+          //次のレコードから10000件以上の時、カーソルを使って取得を行う
+          query += ` and $id > ${records.records[records.records.length - 1].$id.value}`
+          const recordsResps = await window.fetch("./kintone/getRecords", {
+            method: 'POST',
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ app: mapConfig.appId, token: mapConfig.token, domain: domain, query: query })
+          })
+            .then(async (recordsResponse) => {
+              let getOuterRecordResp = await recordsResponse.json();
+              const outerRecordResp = getOuterRecordResp.records
+
+              outerRecordResp.forEach(async (records: any[]) => {
+                records.forEach(async (record: any) => {
+                  const createMarker = await marker(record, mapConfig, domain, login, latLngBox, map);
+                  if (allMarker[record.$id.value]) {
+                    map.removeLayer(allMarker[record.$id.value].marker)
+                    map.removeLayer(allMarker[record.$id.value].markerName)
+                  }
+                  allMarker[record.$id.value] = createMarker
+                  // createMarker.marker.on('click', onMarkerClick)
+                })
+              })
+              recordsResp = recordsResp.concat(outerRecordResp)
+
+            });
+        }
+        markerProcessEnd = performance.now();
+        markerProcessTime = ((markerProcessEnd - markerProcessStart) / 1000).toFixed(2);
+        console.log(`マーカー処理完了: ${markerProcessTime}秒`);
+        console.log('マーカー処理終了:', new Date().toISOString());
+      })
+  })
 
   return {
     map: map,
     currentTile: currentTile,
     name: mapConfig.mapTitle,
     layerMap: layerMap,
-    records: recordsResp
+    records: recordsResp,
+    allMarker: allMarker
   };
 
 }

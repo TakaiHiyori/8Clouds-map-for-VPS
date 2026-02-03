@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { HelmetProvider } from "react-helmet-async"; // <- インポートする
 import { defaultSystem } from '@chakra-ui/react';
 import { Provider } from "../../components/ui/provider";
 import { mapView as MapView } from './paegs/map';
@@ -32,7 +33,9 @@ if (rootElement) {
             </Center>
             <Text color="cyan.600">読み込み中...</Text>
           </Box>
-          <MapView />
+          <HelmetProvider>
+            <MapView />
+          </HelmetProvider>
         </ Provider>
       </React.StrictMode>
     );
@@ -51,7 +54,9 @@ if (rootElement) {
           </Center>
           <Text color="cyan.600">読み込み中...</Text>
         </Box>
-        <ShowConfig />
+        <HelmetProvider>
+          <ShowConfig />
+        </HelmetProvider>
       </ Provider>
       // </React.StrictMode>
     );
@@ -59,7 +64,9 @@ if (rootElement) {
     root.render(
       <React.StrictMode>
         < Provider>
-          <ShowLoginPage />
+          <HelmetProvider>
+            <ShowLoginPage />
+          </HelmetProvider>
         </ Provider>
       </React.StrictMode>
     );

@@ -10,6 +10,12 @@ app.get('/getConfig', async (c) => {
     const domain = c.req.query('domain');
     const user = c.req.query('user');
     console.log('getConfig実行:', domain, user);
+    const configs: any = {
+      config: {},
+      domain: '',
+      domainId: 1,
+      domainText: ''
+    }
 
     // ドメインを取得
     const getDomain = await pool.query(
@@ -17,12 +23,11 @@ app.get('/getConfig', async (c) => {
       [domain]
     )
 
-    const config: { [key: string]: any } = {
-      domainId: getDomain.rows[0].id,
-      domain: getDomain.rows[0].domain,
-      domainText: getDomain.rows[0].domain_text,
-      // openDomain: getDomain.rows[0].open_domain_text
-    }
+    console.log(getDomain.rows[0])
+
+    configs.domain = getDomain.rows[0].domain;
+    configs.domainId = getDomain.rows[0].id;
+    configs.domainText = getDomain.rows[0].domain_text
 
     // オプションを取得
     const getOptions = await pool.query(
@@ -31,7 +36,7 @@ app.get('/getConfig', async (c) => {
     )
 
     for (let i = 0; i < getOptions.rows.length; i++) {
-      config[getOptions.rows[i].option] = getOptions.rows[i].valid
+      configs[getOptions.rows[i].option] = getOptions.rows[i].valid
     }
 
     // 設定を取得
@@ -64,7 +69,7 @@ app.get('/getConfig', async (c) => {
     for (let i = 0; i < getConfigs.rows.length; i++) {
       const getConfig = getConfigs.rows[i]
 
-      config[getConfig.id] = {
+      configs.config[getConfig.id] = {
         id: getConfig.id,
         mapTitle: getConfig.map_title,
         openURL: getConfig.open_url,
@@ -90,10 +95,10 @@ app.get('/getConfig', async (c) => {
         [getConfig.id]
       )
 
-      config[getConfig.id]['change_color_row_num'] = getColors.rows.length;
+      configs.config[getConfig.id]['change_color_row_num'] = getColors.rows.length;
       for (let j = 0; j < getColors.rows.length; j++) {
         const getColor = getColors.rows[j]
-        config[getConfig.id]['change_color_row' + (j + 1)] = {
+        configs.config[getConfig.id]['change_color_row' + (j + 1)] = {
           option: getColor.text,
           color: getColor.color,
           icon: getColor.icon,
@@ -107,10 +112,10 @@ app.get('/getConfig', async (c) => {
         [getConfig.id]
       )
 
-      config[getConfig.id]['popup_row_num'] = getPopups.rows.length;
+      configs.config[getConfig.id]['popup_row_num'] = getPopups.rows.length;
       for (let j = 0; j < getPopups.rows.length; j++) {
         const getPopup = getPopups.rows[j]
-        config[getConfig.id]['popup_row' + (j + 1)] = {
+        configs.config[getConfig.id]['popup_row' + (j + 1)] = {
           popupField: getPopup.field,
           popupFieldName: getPopup.label
         }
@@ -121,10 +126,10 @@ app.get('/getConfig', async (c) => {
         [getConfig.id]
       )
 
-      config[getConfig.id]['narrow_row_number'] = getNarrows.rows.length;
+      configs.config[getConfig.id]['narrow_row_number'] = getNarrows.rows.length;
       for (let j = 0; j < getNarrows.rows.length; j++) {
         const getNarrow = getNarrows.rows[j]
-        config[getConfig.id]['narrow_row' + (j + 1)] = {
+        configs.config[getConfig.id]['narrow_row' + (j + 1)] = {
           field: getNarrow.field,
           condition: getNarrow.condition,
           value: JSON.parse(getNarrow.value),
@@ -139,10 +144,10 @@ app.get('/getConfig', async (c) => {
         [getConfig.id]
       )
 
-      config[getConfig.id]['users_row_number'] = showUsers.rows.length;
+      configs.config[getConfig.id]['users_row_number'] = showUsers.rows.length;
       for (let j = 0; j < showUsers.rows.length; j++) {
         const showUser = showUsers.rows[j]
-        config[getConfig.id]['user_row' + (j + 1)] = {
+        configs.config[getConfig.id]['user_row' + (j + 1)] = {
           user: showUser.user,
           edit: showUser.edit,
           create: showUser.create,
@@ -152,7 +157,7 @@ app.get('/getConfig', async (c) => {
       }
     }
 
-    return c.json(config)
+    return c.json(configs)
   } catch (error) {
     console.error('getConfigエラー:', error);
     return c.json({
