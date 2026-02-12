@@ -2,19 +2,22 @@ import { Hono } from 'hono';
 
 const app = new Hono()
 
-app.post('/kintone/getStatus', async (c) => {
+app.get('/kintone/getStatus', async (c) => {
   c.header('Content-Type', 'application/json; charset=utf-8');
   try {
-    const body = await c.req.json();
-    console.log('getStatus実行:', body);
+    // const body = await c.req.json();
+    const domain: string = c.req.query('domain');
+    const app: string = c.req.query('appId');
+    const token: string = c.req.query('token');
+    console.log('getStatus実行:', domain, app, token);
 
-    const url = `https://${body.domain}.cybozu.com/v1/app/status.json?app=${body.app}`;
+    const url = `https://${domain}.cybozu.com/v1/app/status.json?app=${app}`;
     console.log('リクエストURL:', url);
 
     const getStatus = await fetch(url, {
       method: 'GET',
       headers: {
-        "X-Cybozu-API-Token": body.token,
+        "X-Cybozu-API-Token": token,
       }
     })
 
